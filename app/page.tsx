@@ -1,11 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import axios from "axios";
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState("evaluate"); 
+  const [user, setUser] = useState<any>(null);
+  
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMode, setAuthMode] = useState("login"); 
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authForm, setAuthForm] = useState({
+    fullName: "", phone: "", email: "", otp: ""
+  });
+
+  const [activeTab, setActiveTab] = useState("home"); 
   const [step, setStep] = useState(1);
   const [walletAddress, setWalletAddress] = useState("");
   const [loading, setLoading] = useState(false);
@@ -14,46 +28,108 @@ export default function Home() {
 
   const [inputMode, setInputMode] = useState("form");
   const [jsonInputText, setJsonInputText] = useState("");
-
   const [searchTx, setSearchTx] = useState("");
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchResult, setSearchResult] = useState<any>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user || null);
+    };
+    checkUser();
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user || null);
+    });
+    return () => { authListener.subscription.unsubscribe(); };
+  }, []);
+
+  const handleAuthChange = (e: any) => {
+    setAuthForm({ ...authForm, [e.target.name]: e.target.value });
+  };
+
+  const handleSendOtp = async (e: any) => {
+    e.preventDefault();
+    if (authMode === "register" && (!authForm.fullName || !authForm.phone)) {
+      alert("Vui lòng điền đủ Tên và SĐT để đăng ký!");
+      return;
+    }
+    if (!authForm.email) return;
+
+    setAuthLoading(true);
+
+    const otpOptions: any = authMode === "register" 
+      ? { 
+          shouldCreateUser: true, 
+          data: { display_name: authForm.fullName, phone: authForm.phone } 
+        } 
+      : { 
+          shouldCreateUser: false 
+        };
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email: authForm.email,
+      options: otpOptions
+    });
+    
+    setAuthLoading(false);
+
+    if (error) {
+      if (error.message.includes("Signups not allowed") || error.message.toLowerCase().includes("not found")) {
+        alert("Email này chưa được đăng ký! Vui lòng chuyển sang tab 'Tạo Tài Khoản' để đăng ký.");
+      } else {
+        alert("Lỗi gửi OTP: " + error.message);
+      }
+    } else {
+      setAuthMode("verify"); 
+    }
+  };
+
+  const handleVerifyOtp = async (e: any) => {
+    e.preventDefault();
+    if (!authForm.otp) return;
+    setAuthLoading(true);
+    
+    const { error } = await supabase.auth.verifyOtp({
+      email: authForm.email,
+      token: authForm.otp,
+      type: 'email'
+    });
+    
+    setAuthLoading(false);
+
+    if (error) {
+      alert("Mã OTP không hợp lệ hoặc đã hết hạn!");
+    } else {
+      setShowAuthModal(false); 
+      setAuthForm({ fullName: "", phone: "", email: "", otp: "" }); 
+    }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setActiveTab("home");
+    setStep(1);
+    setAuthMode("login");
+  };
+
+  const requireAuth = (callback: () => void) => {
+    if (user) {
+      callback();
+    } else {
+      setShowAuthModal(true);
+      setAuthMode("login");
+    }
+  };
+
   const defaultJsonTemplate = JSON.stringify({
-    Vehicle_brand: "VinFast",
-    Vehicle_model: "VF 5",
-    Production_year: 2023,
-    Mileage_km: 15000,
-    Fuel_type: "electric",
-    doors_replaced: 0,
-    scratch_severity: "minor",
-    previous_owners: 1,
-    ev_battery_type: "lithium_ion",
-    vehicle_conditions: ["none"],
-    license_plate: "30G-888.88",
-    Displacement_cm3: 0,
-    Power_HP: 134,
-    Transmission: "automatic",
-    Drive: "fwd",
-    Type: "suv",
-    Colour: "black",
-    Doors_number: 4,
-    Seats_count: 5,
-    Condition: "used",
-    Origin_country: "Vietnam",
-    CO2_emissions: 0,
-    Vehicle_version: "Plus",
-    Vehicle_generation: "Gen 1",
-    Accident_free: true,
-    Service_record_available: true,
-    First_owner: "Yes",
-    Air_conditioning: "auto",
-    Alloy_wheels: true,
-    Leather_seats: true,
-    Navigation_system: true,
-    Parking_sensors: true,
-    Owner_birth_year: 1996
+    Vehicle_brand: "VinFast", Vehicle_model: "VF 5", Production_year: 2023, Mileage_km: 15000, Fuel_type: "electric",
+    doors_replaced: 0, scratch_severity: "minor", previous_owners: 1, ev_battery_type: "lithium_ion", vehicle_conditions: ["none"],
+    license_plate: "30G-888.88", Displacement_cm3: 0, Power_HP: 134, Transmission: "automatic", Drive: "fwd", Type: "suv",
+    Colour: "black", Doors_number: 4, Seats_count: 5, Condition: "used", Origin_country: "Vietnam", CO2_emissions: 0,
+    Vehicle_version: "Plus", Vehicle_generation: "Gen 1", Accident_free: true, Service_record_available: true, First_owner: "Yes",
+    Air_conditioning: "auto", Alloy_wheels: true, Leather_seats: true, Navigation_system: true, Parking_sensors: true, Owner_birth_year: 1996
   }, null, 2);
 
   const [formData, setFormData] = useState(JSON.parse(defaultJsonTemplate));
@@ -65,12 +141,11 @@ export default function Home() {
 
   const handleApplyJson = () => {
     try {
-      const parsed = JSON.parse(jsonInputText);
-      setFormData(parsed);
+      setFormData(JSON.parse(jsonInputText));
       alert("Đã nạp dữ liệu JSON thành công!");
       setInputMode("form");
     } catch (error) {
-      alert("Cục JSON bạn dán bị lỗi cú pháp. Vui lòng kiểm tra lại!");
+      alert("Cục JSON bị lỗi cú pháp. Vui lòng kiểm tra lại!");
     }
   };
 
@@ -119,7 +194,7 @@ export default function Home() {
       const tx = await contract.payForValuation({ value: ethers.parseEther("0.001") });
       await tx.wait();
       
-      const payload = { txhash: tx.hash, ...formData };
+      const payload = { txhash: tx.hash, ...formData, user_email: user.email }; 
       const response = await axios.post("http://127.0.0.1:8080/api/v1/transactions/evaluate", payload);
       
       const fullData = { ...response.data.data, ...formData };
@@ -149,14 +224,13 @@ export default function Home() {
       setSearchResult(formattedResult);
     } catch (error) {
       console.error(error);
-      alert("Không tìm thấy mã giao dịch này trong cơ sở dữ liệu!");
+      alert("Không tìm thấy mã giao dịch này!");
     } finally {
       setSearchLoading(false);
     }
   };
 
   const years = Array.from({ length: 22 }, (_, i) => 2026 - i);
-
   const DropdownIcon = () => (
     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
       <svg className="w-5 h-5 transition-transform duration-300 group-focus-within:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -174,14 +248,10 @@ export default function Home() {
   );
 
   const ResultView = ({ data }: { data: any }) => {
-    // FIX LOGIC BIỂN VIP: Kiểm tra cả nội dung phong thủy VÀ kiểm tra trực tiếp số trên biển
     const fengShuiText = (data.feng_shui_translation || "").toLowerCase();
-    const plateText = (data.license_plate || "").replace(/[-.]/g, ''); // Bỏ gạch ngang và chấm
-    
-    // Nếu luận giải có chữ đẹp/tài/lộc HOẶC biển chứa 3 số lặp (888, 999) hoặc 68/86 thì tính là VIP
+    const plateText = (data.license_plate || "").replace(/[-.]/g, '');
     const isVIP = fengShuiText.match(/(đẹp|phát|lộc|tài|đại cát|cát|tốt)/) || plateText.match(/(68|86|39|79|666|777|888|999|555)/);
 
-    // Hàm an toàn để tránh hiển thị undefined
     const safeRender = (val: any) => {
       if (val === undefined || val === null) return "Không rõ";
       if (typeof val === 'boolean') return val ? "Có" : "Không";
@@ -191,18 +261,15 @@ export default function Home() {
     return (
       <div id="certificate-print" className="bg-white p-8 md:p-10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-gray-100 relative overflow-hidden animate-[fadeInUp_0.5s_ease-out]">
         <CertifiedStamp />
-        
         <div className="hidden print-header text-center mb-8 border-b pb-4">
           <h1 className="text-3xl font-black text-blue-600 mb-1">CHỨNG NHẬN ĐỊNH GIÁ XE AI.WEB3</h1>
-          <p className="text-gray-500">Mã giao dịch: {data.txhash}</p>
+          <p className="text-gray-500">Người yêu cầu: {user?.user_metadata?.display_name || user?.email} | Mã giao dịch: {data.txhash}</p>
         </div>
-
         <div className="grid gap-6 md:grid-cols-2 mb-8 relative z-10 pt-4">
           <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100">
             <p className="text-gray-500 text-sm font-bold uppercase tracking-wider mb-2">Giá thị trường dự đoán</p>
             <p className="text-3xl md:text-4xl font-black text-blue-600">{safeRender(data.predicted_price_display || data.predicted_price_vnd)}</p>
           </div>
-          
           <div className={`p-6 rounded-2xl border ${isVIP ? 'bg-gradient-to-br from-amber-50 to-yellow-100 border-yellow-300 ring-2 ring-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.3)]' : 'bg-gray-50 border-gray-100'}`}>
             <p className={`text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-2 ${isVIP ? 'text-yellow-700' : 'text-gray-500'}`}>
               Biển số xe {isVIP && <span className="text-lg animate-bounce">👑 VIP</span>}
@@ -211,7 +278,6 @@ export default function Home() {
               {safeRender(data.license_plate)}
             </p>
           </div>
-
           <div className="bg-gray-50/80 p-6 rounded-2xl border border-gray-200 md:col-span-2">
             <p className="text-gray-900 font-bold mb-4 uppercase tracking-wider text-xs border-b pb-2 flex items-center justify-between">
               <span>📋 Chi tiết toàn bộ thông số xe (30+ Trường dữ liệu AI)</span>
@@ -240,15 +306,13 @@ export default function Home() {
               <div><span className="text-gray-400 block text-xs">Năm sinh chủ xe</span> <strong className="text-gray-800">{safeRender(data.Owner_birth_year)}</strong></div>
             </div>
           </div>
-
           <div className="bg-orange-50/30 p-6 rounded-2xl border border-orange-100 md:col-span-2">
             <p className="text-orange-600 text-sm font-bold uppercase tracking-wider mb-3 flex items-center gap-2">
               <span className="text-lg">☯️</span> Luận giải Phong Thủy
             </p>
-            <p className="text-lg text-gray-800 leading-relaxed font-serif italic">"{data.feng_shui_translation || "Chưa có dữ liệu luận giải cho biển số này."}"</p>
+            <p className="text-lg text-gray-800 leading-relaxed font-serif italic">"{data.feng_shui_translation || "Chưa có dữ liệu luận giải."}"</p>
           </div>
         </div>
-
         <div className="no-print bg-gray-900 p-5 rounded-xl flex flex-col md:flex-row justify-between items-center gap-4 text-white relative z-20">
           <div className="overflow-hidden w-full flex-1">
             <p className="text-xs text-gray-400 uppercase tracking-widest mb-1 font-bold">Mã Giao Dịch (TxHash)</p>
@@ -260,12 +324,8 @@ export default function Home() {
             </div>
           </div>
           <div className="flex gap-2 w-full md:w-auto">
-            <button 
-              onClick={() => window.print()} 
-              className="flex-1 md:flex-none whitespace-nowrap bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-              Xuất PDF
+            <button onClick={() => window.print()} className="flex-1 md:flex-none whitespace-nowrap bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> Xuất PDF
             </button>
             <a href={`https://sepolia.etherscan.io/tx/${data.txhash}`} target="_blank" rel="noopener noreferrer" className="flex-1 md:flex-none whitespace-nowrap bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2">
               Etherscan ↗
@@ -276,13 +336,12 @@ export default function Home() {
     );
   };
 
-  // 24 Lỗi vi phạm giao thông thường gặp
+  // ĐÃ BỔ SUNG THÊM 10 LUẬT LÀM TỔNG CỘNG 16 LUẬT
   const trafficLaws = [
     { title: "Vượt đèn đỏ / đèn vàng", fine: "4 - 6 triệu", detail: "Tước GPLX 1-3 tháng", icon: "🚦", color: "bg-red-50 text-red-600 border-red-100" },
     { title: "Quá tốc độ 10-20km/h", fine: "4 - 6 triệu", detail: "Tước GPLX 1-3 tháng", icon: "⚡", color: "bg-orange-50 text-orange-600 border-orange-100" },
     { title: "Quá tốc độ >35km/h", fine: "10 - 12 triệu", detail: "Tước GPLX 2-4 tháng", icon: "🏎️", color: "bg-red-50 text-red-700 border-red-200" },
     { title: "Nồng độ cồn (Mức 1)", fine: "6 - 8 triệu", detail: "Tước GPLX 10-12 tháng", icon: "🍻", color: "bg-purple-50 text-purple-600 border-purple-100" },
-    { title: "Nồng độ cồn (Kịch khung)", fine: "30 - 40 triệu", detail: "Tước GPLX 22-24 tháng", icon: "🍷", color: "bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200" },
     { title: "Đi sai làn đường", fine: "4 - 6 triệu", detail: "Tước GPLX 1-3 tháng", icon: "🛣️", color: "bg-blue-50 text-blue-600 border-blue-100" },
     { title: "Đi ngược chiều", fine: "4 - 6 triệu", detail: "Tước GPLX 2-4 tháng", icon: "⛔", color: "bg-rose-50 text-rose-600 border-rose-100" },
     { title: "Không thắt dây an toàn", fine: "800k - 1 triệu", detail: "Phạt người lái & ghế phụ", icon: "💺", color: "bg-emerald-50 text-emerald-600 border-emerald-100" },
@@ -294,78 +353,125 @@ export default function Home() {
     { title: "Không nhường xe ưu tiên", fine: "6 - 8 triệu", detail: "Tước GPLX 2-4 tháng", icon: "🚑", color: "bg-pink-50 text-pink-600 border-pink-100" },
     { title: "Không có GPLX", fine: "10 - 12 triệu", detail: "Tạm giữ xe 7 ngày", icon: "🪪", color: "bg-red-50 text-red-600 border-red-100" },
     { title: "Lùi xe trên cao tốc", fine: "16 - 18 triệu", detail: "Tước GPLX 5-7 tháng", icon: "🔙", color: "bg-rose-50 text-rose-700 border-rose-200" },
-    { title: "Không có bảo hiểm TNDS", fine: "400k - 600k", detail: "Phạt tiền trực tiếp", icon: "🛡️", color: "bg-teal-50 text-teal-600 border-teal-100" },
-    { title: "Lắp còi hú sai quy định", fine: "2 - 3 triệu", detail: "Tịch thu còi", icon: "📢", color: "bg-orange-50 text-orange-600 border-orange-100" },
-    { title: "Quay đầu xe trên cầu", fine: "400k - 600k", detail: "Phạt tiền trực tiếp", icon: "🌉", color: "bg-blue-50 text-blue-600 border-blue-100" },
-    { title: "Đi vào đường cấm", fine: "2 - 3 triệu", detail: "Tước GPLX 1-3 tháng", icon: "🚫", color: "bg-red-50 text-red-500 border-red-100" },
-    { title: "Không bật đèn ban đêm", fine: "800k - 1 triệu", detail: "Áp dụng từ 19h - 5h", icon: "💡", color: "bg-yellow-50 text-yellow-600 border-yellow-100" },
-    { title: "Chở quá số người (>1 người)", fine: "400k - 600k/người", detail: "Nhân lên theo số người vượt", icon: "👨‍👩‍👧‍👦", color: "bg-green-50 text-green-600 border-green-100" },
-    { title: "Để biển số bị che khuất", fine: "4 - 6 triệu", detail: "Phạt tiền trực tiếp", icon: "🌫️", color: "bg-gray-100 text-gray-600 border-gray-200" },
-    { title: "Xe hết niên hạn", fine: "10 - 12 triệu", detail: "Tịch thu phương tiện", icon: "🏗️", color: "bg-stone-100 text-stone-700 border-stone-300" }
+    { title: "Không bảo hiểm TNDS", fine: "400k - 600k", detail: "Phạt tiền trực tiếp", icon: "🛡️", color: "bg-teal-50 text-teal-600 border-teal-100" }
   ];
 
-  // Dữ liệu Tạp chí: "Giải mã ngôn ngữ nghề cho ô tô"
   const magazineArticles = [
-    { 
-      category: "Động cơ", 
-      items: [
-        { title: "Bộ chế hòa khí ô tô là gì?", snippet: "\"Bộ chế hòa khí\" ô tô là gì? Ô tô có vận hành được nếu thiếu bộ chế hòa khí...", img: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&h=250&fit=crop" },
-        { title: "Vè, lòng dè ô tô là gì?", snippet: "\"Vè ô tô\" tại garage hay nói tới là gì? Cùng Dinhgiaxe tìm hiểu về 2...", img: "https://images.unsplash.com/photo-1530053969600-caed2596d242?w=400&h=250&fit=crop" },
-        { title: "Khe hở xupap là gì? Cách...", snippet: "Khe hở supap là gì? Vai trò của khe hở supap đối với động cơ ô tô? Nguyên...", img: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&h=250&fit=crop" },
-        { title: "Gioăng giàn cò là gì? Thay...", snippet: "Gioăng giàn cò là gì? Thay gioăng giàn cò có phải bổ máy? Chi phí thay gioăng...", img: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=400&h=250&fit=crop" }
-      ]
-    },
-    { 
-      category: "Nội thất", 
-      items: [
-         { title: "\"Con ngựa\" ô tô là gì?", snippet: "\"Con ngựa\" tại garage hay nói tới là gì? Cùng Dinhgiaxe tìm hiểu thuật ngữ...", img: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=250&fit=crop" },
-         { title: "Trần thụng là gì?", snippet: "\"Trần thụng\" tại garage hay nói tới là gì? Cùng Dinhgiaxe tìm hiểu nguyên nhân...", img: "https://images.unsplash.com/photo-1503376710342-9b2f676231bd?w=400&h=250&fit=crop" }
-      ]
-    }
+    { category: "Động cơ", items: [
+      { title: "Bộ chế hòa khí ô tô là gì?", snippet: "Ô tô có vận hành được nếu thiếu bộ chế hòa khí...", img: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&h=250&fit=crop" },
+      { title: "Vè, lòng dè ô tô là gì?", snippet: "Vè ô tô tại garage hay nói tới là gì? Cùng tìm hiểu...", img: "https://images.unsplash.com/photo-1530053969600-caed2596d242?w=400&h=250&fit=crop" }
+    ]},
+    { category: "Nội thất", items: [
+      { title: "\"Con ngựa\" ô tô là gì?", snippet: "Thuật ngữ \"con ngựa\" tại garage hay nói tới là gì?", img: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=250&fit=crop" },
+      { title: "Trần thụng là gì?", snippet: "Trần thụng tại garage hay nói tới là gì? Nguyên nhân do đâu?", img: "https://images.unsplash.com/photo-1503376710342-9b2f676231bd?w=400&h=250&fit=crop" }
+    ]}
   ];
 
   const faqs = [
-    { q: "Giá mua và giá bán khác nhau như thế nào?", a: "Giá mua được định nghĩa là giá mua xe cũ của cá nhân và là giá thu mua của các đại lý. Ngược lại, giá bán là giá bán ra của showroom. Thực tế, giá mua và giá bán xe cũ có sự chênh lệch khá lớn vì phần lớn các showroom sẽ mất chi phí bảo dưỡng, trùng tu trước khi bán." },
-    { q: "Giá trên công cụ định giá AI có chính xác không?", a: "Hệ thống phân tích dựa trên hơn 30 biến số kỹ thuật (Odo, dòng xe, năm sản xuất...) kết hợp với dữ liệu thị trường thực tế, mang lại mức giá sát nhất với giao dịch thực tế." },
-    { q: "Dữ liệu công cụ được lấy từ đâu?", a: "Dữ liệu được thu thập và tổng hợp từ hàng trăm ngàn tin đăng bán xe trên các sàn thương mại điện tử, showroom lớn trên toàn quốc và liên tục được máy học (Machine Learning) cập nhật." },
-    { q: "Kết quả định giá có được cập nhật không?", a: "Có. Trọng số của mô hình AI sẽ được tính toán và cập nhật theo từng chu kỳ biến động của thị trường xe cũ, đảm bảo giá trị luôn theo sát thời cuộc." },
-    { q: "Tại sao xe của tôi không định giá được?", a: "Có thể xe của bạn thuộc dạng quá hiếm (Classic, xe sưu tầm) không có dữ liệu đối chiếu trên thị trường, hoặc bạn đã nhập sai một số thông số kỹ thuật. Vui lòng kiểm tra lại Form nhập liệu." }
+    { q: "Giá mua và giá bán khác nhau như thế nào?", a: "Giá mua là giá đại lý thu vào, giá bán là giá showroom bán ra. Luôn có sự chênh lệch do chi phí bảo dưỡng." },
+    { q: "Giá trên công cụ định giá AI có chính xác không?", a: "Hệ thống phân tích dựa trên hơn 30 biến số kỹ thuật và dữ liệu thị trường thực tế." },
+    { q: "Dữ liệu công cụ được lấy từ đâu?", a: "Dữ liệu được thu thập và tổng hợp từ hàng trăm ngàn tin đăng bán xe trên các sàn thương mại điện tử, showroom lớn trên toàn quốc." },
+    { q: "Kết quả định giá có được cập nhật không?", a: "Có. Trọng số của mô hình AI sẽ được tính toán và cập nhật theo từng chu kỳ biến động của thị trường." }
   ];
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F3F4F6] text-gray-800 font-sans selection:bg-blue-200">
       
+      {showAuthModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl relative animate-[scaleIn_0.3s_ease-out]">
+            <button onClick={() => { setShowAuthModal(false); setAuthMode("login"); }} className="absolute top-4 right-4 text-gray-400 hover:text-gray-800">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            
+            {authMode !== "verify" && (
+              <div className="flex bg-gray-100 p-1 rounded-xl mb-6">
+                <button onClick={() => setAuthMode("login")} className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${authMode === "login" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-900"}`}>Đăng Nhập</button>
+                <button onClick={() => setAuthMode("register")} className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${authMode === "register" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-900"}`}>Tạo Tài Khoản</button>
+              </div>
+            )}
+
+            <h2 className="text-2xl font-black text-gray-900 mb-2 text-center">
+              {authMode === "verify" ? "Nhập mã xác nhận" : "Xác thực danh tính"}
+            </h2>
+            <p className="text-center text-sm text-gray-500 mb-6">
+              {authMode === "verify" ? "Vui lòng kiểm tra Email và nhập mã số" : "Sử dụng Email để nhận mã OTP an toàn"}
+            </p>
+            
+            {authMode === "verify" ? (
+              <form onSubmit={handleVerifyOtp} className="space-y-4">
+                <div>
+                  {/* ĐÃ NÂNG LÊN MAXLENGTH 8 */}
+                  <input type="text" name="otp" maxLength={8} value={authForm.otp} onChange={handleAuthChange} required className="w-full bg-gray-50 border border-gray-200 p-4 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-center text-2xl font-mono tracking-[0.3em]" placeholder="--------" />
+                </div>
+                <button type="submit" disabled={authLoading} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg mt-4">
+                  {authLoading ? "Đang xác thực..." : "Xác nhận Đăng Nhập"}
+                </button>
+                <div className="text-center mt-4">
+                  <button type="button" onClick={() => setAuthMode("login")} className="text-sm text-blue-600 hover:underline">Thử lại Email khác</button>
+                </div>
+              </form>
+            ) : (
+              <form onSubmit={handleSendOtp} className="space-y-4">
+                {authMode === "register" && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-1">Họ và Tên</label>
+                      <input type="text" name="fullName" value={authForm.fullName} onChange={handleAuthChange} required={authMode === "register"} className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" placeholder="VD: Nguyễn Văn A" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-1">Số điện thoại</label>
+                      <input type="tel" name="phone" value={authForm.phone} onChange={handleAuthChange} required={authMode === "register"} className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" placeholder="VD: 0987654321" />
+                    </div>
+                  </>
+                )}
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Email của bạn</label>
+                  <input type="email" name="email" value={authForm.email} onChange={handleAuthChange} required className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" placeholder="VD: email@gmail.com" />
+                </div>
+                <button type="submit" disabled={authLoading} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg mt-4">
+                  {authLoading ? "Đang gửi mã..." : "Nhận mã OTP"}
+                </button>
+                <div className="text-center pt-3 border-t border-gray-100 mt-4">
+                  <button type="button" onClick={() => setAuthMode("verify")} className="text-sm font-semibold text-gray-500 hover:text-blue-600 transition-colors">
+                    Đã có mã OTP? Chuyển sang ô nhập mã
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+
       <header className="no-print bg-white shadow-sm sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => { setActiveTab("evaluate"); setStep(1); setResult(null); }}>
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => { setActiveTab("home"); setStep(1); setResult(null); }}>
             <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white font-bold text-xl">Đ</div>
             <span className="font-extrabold text-xl tracking-tight text-gray-900">địnhgiá<span className="text-blue-600">xe</span>.ai</span>
           </div>
-          <div className="flex gap-6 text-sm font-bold text-gray-600">
-            <span onClick={() => { setActiveTab("evaluate"); setStep(1); setResult(null); }} className={`cursor-pointer transition-colors pb-1 border-b-2 ${activeTab === "evaluate" ? "text-blue-600 border-blue-600" : "border-transparent hover:text-blue-600"}`}>Định giá AI</span>
-            <span onClick={() => { setActiveTab("search"); setSearchResult(null); setSearchTx(""); }} className={`cursor-pointer transition-colors pb-1 border-b-2 ${activeTab === "search" ? "text-blue-600 border-blue-600" : "border-transparent hover:text-blue-600"}`}>Tra cứu TxHash</span>
+          
+          <div className="flex items-center gap-6 text-sm font-bold text-gray-600">
+            <span onClick={() => setActiveTab("home")} className={`cursor-pointer transition-colors pb-1 border-b-2 ${activeTab === "home" ? "text-blue-600 border-blue-600" : "border-transparent hover:text-blue-600"}`}>Trang chủ</span>
+            <span onClick={() => requireAuth(() => { setActiveTab("evaluate"); setStep(2); setResult(null); })} className={`cursor-pointer transition-colors pb-1 border-b-2 ${activeTab === "evaluate" ? "text-blue-600 border-blue-600" : "border-transparent hover:text-blue-600"}`}>Định giá AI</span>
+            <span onClick={() => requireAuth(() => { setActiveTab("search"); setSearchResult(null); setSearchTx(""); })} className={`cursor-pointer transition-colors pb-1 border-b-2 ${activeTab === "search" ? "text-blue-600 border-blue-600" : "border-transparent hover:text-blue-600"}`}>Tra cứu TxHash</span>
+            
+            {user ? (
+              <div className="flex items-center gap-3 ml-4 pl-4 border-l border-gray-200">
+                <span className="bg-gray-100 text-gray-800 px-3 py-1.5 rounded-full font-medium flex items-center gap-2">
+                   👋 {user.user_metadata?.display_name || user.email.split('@')[0]}
+                </span>
+                <button onClick={handleLogout} className="text-red-500 hover:text-red-600 hover:underline">Thoát</button>
+              </div>
+            ) : (
+              <button onClick={() => { setShowAuthModal(true); setAuthMode("login"); }} className="ml-4 bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">Đăng nhập</button>
+            )}
           </div>
         </div>
       </header>
 
       <main className="flex-grow max-w-6xl mx-auto px-6 pt-12 pb-20 w-full">
-        
-        {activeTab === "search" && (
-          <div className="max-w-3xl mx-auto animate-[fadeIn_0.3s_ease-out]">
-            <h1 className="no-print text-3xl font-extrabold text-gray-900 mb-2 text-center">Tra Cứu Chứng Nhận Định Giá</h1>
-            <p className="no-print text-gray-500 text-center mb-8">Nhập mã giao dịch (TxHash) trên mạng Sepolia để xem lại toàn bộ hồ sơ xe và xuất PDF.</p>
-            <div className="no-print flex gap-3 mb-10">
-              <input type="text" placeholder="Nhập mã TxHash (VD: 0x9fa311d...)" value={searchTx} onChange={(e) => setSearchTx(e.target.value)} className="flex-1 bg-white border border-gray-300 text-gray-900 p-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all font-mono shadow-sm" />
-              <button onClick={handleSearchTx} disabled={searchLoading || !searchTx} className="bg-gray-900 hover:bg-blue-600 disabled:bg-gray-400 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-md active:scale-95 whitespace-nowrap">
-                {searchLoading ? "Đang tìm..." : "Tra Cứu"}
-              </button>
-            </div>
-            {searchResult && <ResultView data={searchResult} />}
-          </div>
-        )}
-
-        {activeTab === "evaluate" && step === 1 && (
-          <div className="space-y-20 animate-[fadeIn_0.5s_ease-out]">
+        {activeTab === "home" && (
+          <div className="space-y-24 animate-[fadeIn_0.5s_ease-out]">
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div className="space-y-8">
                 <h1 className="text-5xl font-extrabold leading-tight text-gray-900">Có gì ở <span className="text-blue-600">địnhgiáxe.ai</span>? ⚡</h1>
@@ -379,7 +485,7 @@ export default function Home() {
                     <p className="text-gray-500">Chứng nhận định giá được cấp mộc điện tử và có thể xuất file PDF bất cứ lúc nào.</p>
                   </div>
                 </div>
-                <button onClick={() => setStep(2)} className="bg-gray-900 hover:bg-blue-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl active:scale-95">
+                <button onClick={() => requireAuth(() => { setActiveTab("evaluate"); setStep(2); })} className="bg-gray-900 hover:bg-blue-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl active:scale-95">
                   Dùng thử Định Giá Ngay →
                 </button>
               </div>
@@ -399,13 +505,48 @@ export default function Home() {
               </div>
             </div>
 
-            {/* SECTION: GIẢI MÃ NGÔN NGỮ NGHỀ (Y HỆT ẢNH) */}
-            <div className="pt-12 border-t border-gray-200">
+            {/* MỚI: PHẦN GIỚI THIỆU */}
+            <div className="pt-16 border-t border-gray-200">
+              <div className="grid md:grid-cols-2 gap-10 items-center">
+                <div className="order-2 md:order-1 rounded-3xl overflow-hidden shadow-2xl border border-gray-100 group relative">
+                  <img src="https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=600&h=400&fit=crop" alt="Giới thiệu" className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
+                    <p className="text-white font-bold">Thấu hiểu giá trị, Minh bạch niềm tin.</p>
+                  </div>
+                </div>
+                <div className="order-1 md:order-2">
+                  <h2 className="text-3xl font-extrabold text-gray-900 mb-4">Về <span className="text-blue-600">ĐịnhGiáXe.ai</span></h2>
+                  <p className="text-gray-600 leading-relaxed mb-6">
+                    Khởi nguồn từ sự thấu hiểu nỗi đau của người mua bán xe cũ về việc "bị hớ" giá, ĐịnhGiáXe.ai tự hào là nền tảng tiên phong tại Việt Nam ứng dụng Trí tuệ nhân tạo (AI) và công nghệ Web3 Blockchain vào việc thẩm định. 
+                    <br/><br/>
+                    Sứ mệnh của chúng tôi là chuẩn hóa và minh bạch hóa thị trường xe cũ, giúp người mua và người bán kết nối với nhau dựa trên dữ liệu thực tế và sự tin tưởng tuyệt đối.
+                  </p>
+                  <ul className="space-y-3 font-medium text-gray-700">
+                    <li className="flex items-center gap-3"><span className="text-emerald-500 text-xl">✅</span> Phân tích hơn 30+ biến số kỹ thuật</li>
+                    <li className="flex items-center gap-3"><span className="text-emerald-500 text-xl">✅</span> Cập nhật dữ liệu thị trường theo thời gian thực</li>
+                    <li className="flex items-center gap-3"><span className="text-emerald-500 text-xl">✅</span> Chứng nhận Blockchain vĩnh viễn, không thể làm giả</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* MỚI: PHẦN BÁO CHÍ */}
+            <div className="pt-16 border-t border-gray-200">
+              <h2 className="text-center text-sm font-bold text-gray-400 uppercase tracking-widest mb-10">Được tin tưởng & nhắc đến bởi</h2>
+              <div className="flex flex-wrap justify-center items-center gap-10 md:gap-20 grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-700">
+                 <div className="text-3xl font-black font-serif tracking-tighter text-[#9f224e]">VNEXPRESS</div>
+                 <div className="text-3xl font-black text-[#008a66] tracking-tighter">DÂN TRÍ</div>
+                 <div className="text-3xl font-black text-[#d62828] font-sans italic tracking-tighter">AutoPro</div>
+                 <div className="text-3xl font-black text-[#005ea8] tracking-tighter">TUỔI TRẺ</div>
+                 <div className="text-3xl font-black text-gray-900 tracking-tighter">Znews</div>
+              </div>
+            </div>
+
+            <div className="pt-16 border-t border-gray-200">
               <div className="mb-8">
                 <h2 className="text-3xl font-extrabold text-gray-800 uppercase tracking-tight">GIẢI MÃ NGÔN NGỮ "NGHỀ" CHO Ô TÔ</h2>
                 <p className="text-gray-500 mt-1">Những từ ngữ chủ garage, cò lái mua bán xe ô tô cũ thường dùng bạn cần biết</p>
               </div>
-              
               {magazineArticles.map((cat, idx) => (
                 <div key={idx} className="mb-10">
                   <div className="flex justify-between items-end mb-4 border-b border-gray-200 pb-2">
@@ -427,10 +568,9 @@ export default function Home() {
               ))}
             </div>
 
-            {/* SECTION: CẨM NANG LUẬT GIAO THÔNG */}
-            <div className="pt-8 border-t border-gray-200">
-              <h2 className="text-2xl font-extrabold text-gray-900 mb-6 flex items-center gap-3"><span className="text-3xl">🚨</span> Cẩm nang Lỗi vi phạm 24/7 (Ô tô)</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <div className="pt-16 border-t border-gray-200">
+              <h2 className="text-3xl font-extrabold text-gray-900 mb-8 flex items-center gap-3"><span className="text-3xl">🚨</span> Cẩm nang Lỗi vi phạm 24/7 (Ô tô)</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
                 {trafficLaws.map((law, index) => (
                   <div key={index} className={`p-4 rounded-2xl border ${law.color} bg-opacity-50 hover:bg-opacity-100 transition-colors cursor-pointer flex flex-col justify-between`}>
                     <div>
@@ -446,12 +586,9 @@ export default function Home() {
               </div>
             </div>
 
-            {/* SECTION: FAQ */}
-            <div className="pt-12 border-t border-gray-200 pb-10">
+            <div className="pt-16 border-t border-gray-200 pb-10">
               <div className="grid md:grid-cols-3 gap-8">
-                <div className="md:col-span-1">
-                  <h2 className="text-3xl font-extrabold text-gray-800">Câu hỏi thường gặp</h2>
-                </div>
+                <div className="md:col-span-1"><h2 className="text-3xl font-extrabold text-gray-800">Câu hỏi thường gặp</h2></div>
                 <div className="md:col-span-2 space-y-3">
                   {faqs.map((faq, index) => (
                     <div key={index} className={`bg-white rounded-xl border ${openFaq === index ? 'border-gray-300 shadow-sm' : 'border-gray-100'} overflow-hidden transition-all duration-300`}>
@@ -459,19 +596,30 @@ export default function Home() {
                         {faq.q}
                         <svg className={`w-5 h-5 text-gray-400 transform transition-transform duration-300 ${openFaq === index ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                       </button>
-                      <div className={`px-6 text-sm text-gray-600 leading-relaxed transition-all duration-300 ease-in-out ${openFaq === index ? 'max-h-40 pb-4 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
-                        {faq.a}
-                      </div>
+                      <div className={`px-6 text-sm text-gray-600 leading-relaxed transition-all duration-300 ease-in-out ${openFaq === index ? 'max-h-40 pb-4 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>{faq.a}</div>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
-
           </div>
         )}
 
-        {/* BƯỚC 2: NHẬP FORM */}
+        {/* ... (CÁC PHẦN ĐỊNH GIÁ & TRA CỨU GIỮ NGUYÊN) ... */}
+        {activeTab === "search" && (
+          <div className="max-w-3xl mx-auto animate-[fadeIn_0.3s_ease-out]">
+            <h1 className="no-print text-3xl font-extrabold text-gray-900 mb-2 text-center">Tra Cứu Chứng Nhận Định Giá</h1>
+            <p className="no-print text-gray-500 text-center mb-8">Xin chào {user?.user_metadata?.display_name || user?.email}, hãy nhập mã giao dịch (TxHash) trên mạng Sepolia để tra cứu.</p>
+            <div className="no-print flex gap-3 mb-10">
+              <input type="text" placeholder="Nhập mã TxHash..." value={searchTx} onChange={(e) => setSearchTx(e.target.value)} className="flex-1 bg-white border border-gray-300 p-4 rounded-xl outline-none" />
+              <button onClick={handleSearchTx} disabled={searchLoading || !searchTx} className="bg-gray-900 hover:bg-blue-600 text-white px-8 py-4 rounded-xl font-bold shadow-md">
+                {searchLoading ? "Đang tìm..." : "Tra Cứu"}
+              </button>
+            </div>
+            {searchResult && <ResultView data={searchResult} />}
+          </div>
+        )}
+
         {activeTab === "evaluate" && step === 2 && (
           <div className="max-w-3xl mx-auto bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 p-8 md:p-10 animate-[fadeInUp_0.4s_ease-out]">
             <div className="flex justify-between items-center mb-6 border-b pb-4">
@@ -481,14 +629,13 @@ export default function Home() {
               </div>
               <div className="flex bg-gray-100 p-1 rounded-xl">
                 <button onClick={() => setInputMode("form")} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${inputMode === "form" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500"}`}>Nhập Form</button>
-                <button onClick={() => { setInputMode("json"); setJsonInputText(JSON.stringify(formData, null, 2)); }} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${inputMode === "json" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500"}`}>Dán JSON ({">"}30 trường)</button>
+                <button onClick={() => { setInputMode("json"); setJsonInputText(JSON.stringify(formData, null, 2)); }} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${inputMode === "json" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500"}`}>Dán JSON</button>
               </div>
             </div>
             {inputMode === "json" ? (
               <div className="space-y-4">
-                <p className="text-xs text-gray-500">Dán toàn bộ đối tượng JSON chứa các biến mô hình AI vào ô dưới đây:</p>
-                <textarea rows={14} value={jsonInputText} onChange={(e) => setJsonInputText(e.target.value)} className="w-full bg-gray-900 text-green-400 font-mono text-xs p-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-inner" />
-                <button onClick={handleApplyJson} className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl font-bold transition-all shadow-md">Áp dụng JSON vào hệ thống</button>
+                <textarea rows={14} value={jsonInputText} onChange={(e) => setJsonInputText(e.target.value)} className="w-full bg-gray-900 text-green-400 font-mono text-xs p-4 rounded-xl outline-none" />
+                <button onClick={handleApplyJson} className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">Áp dụng JSON</button>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -536,13 +683,12 @@ export default function Home() {
               </div>
             )}
             <div className="flex justify-between items-center pt-6 border-t border-gray-100">
-              <button onClick={() => setStep(1)} className="text-gray-500 hover:text-gray-900 font-medium px-4 py-2 transition-colors flex items-center gap-2"><span>←</span> Quay lại</button>
+              <button onClick={() => setActiveTab("home")} className="text-gray-500 hover:text-gray-900 font-medium px-4 py-2 transition-colors flex items-center gap-2"><span>←</span> Hủy bỏ</button>
               <button onClick={handleGoToPayment} className="bg-[#00B14F] hover:bg-[#009944] text-white px-8 py-4 rounded-xl font-bold shadow-lg shadow-green-200 transition-all transform active:scale-95">Tiếp tục thanh toán →</button>
             </div>
           </div>
         )}
 
-        {/* BƯỚC 3: XÁC NHẬN */}
         {activeTab === "evaluate" && step === 3 && (
           <div className="max-w-md mx-auto bg-white rounded-3xl shadow-xl border border-gray-100 p-8 text-center animate-[scaleIn_0.3s_ease-out]">
             <h2 className="text-2xl font-extrabold mb-2 text-gray-900 mt-4">Xác Nhận Dịch Vụ</h2>
@@ -557,7 +703,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* BƯỚC 4: KẾT QUẢ ĐỊNH GIÁ */}
         {activeTab === "evaluate" && step === 4 && result && (
           <div className="max-w-4xl mx-auto">
             <div className="no-print text-center mb-10 animate-[fadeInUp_0.4s_ease-out]">
@@ -566,13 +711,12 @@ export default function Home() {
             </div>
             <ResultView data={result} />
             <div className="no-print text-center mt-10">
-              <button onClick={() => { setStep(1); setResult(null); }} className="text-gray-500 hover:text-gray-900 font-bold px-6 py-3 transition-colors underline">Định giá xe khác</button>
+              <button onClick={() => { setStep(2); setResult(null); }} className="text-gray-500 hover:text-gray-900 font-bold px-6 py-3 transition-colors underline">Định giá xe khác</button>
             </div>
           </div>
         )}
       </main>
 
-      {/* FOOTER GIỐNG ẢNH */}
       <footer className="no-print bg-white border-t border-gray-200 mt-auto">
         <div className="max-w-6xl mx-auto px-6 py-10 grid md:grid-cols-2 gap-6">
           <div>
@@ -582,16 +726,12 @@ export default function Home() {
           </div>
           <div className="md:text-right">
             <h3 className="font-bold text-gray-900 text-sm mb-2">Liên hệ với chúng tôi</h3>
-            <p className="text-sm text-gray-600 flex items-center md:justify-end gap-2">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-              hotro@dinhgiaxe.ai
-            </p>
+            <p className="text-sm text-gray-600 flex items-center md:justify-end gap-2">hotro@dinhgiaxe.ai</p>
             <p className="text-xs text-gray-400 mt-4">© 2026 dinhgiaxe.ai</p>
           </div>
         </div>
       </footer>
 
-      {/* CSS CHO ANIMATION VÀ PRINT (In PDF) */}
       <style jsx global>{`
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -601,11 +741,7 @@ export default function Home() {
           body { background-color: white !important; margin: 0; padding: 0; }
           .no-print { display: none !important; }
           #certificate-print { 
-            position: absolute; 
-            left: 0; top: 0; width: 100%; 
-            box-shadow: none !important; 
-            border: none !important;
-            padding: 0 !important;
+            position: absolute; left: 0; top: 0; width: 100%; box-shadow: none !important; border: none !important; padding: 0 !important;
           }
           .print-header { display: block !important; }
         }
