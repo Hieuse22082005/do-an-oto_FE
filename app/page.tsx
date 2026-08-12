@@ -242,16 +242,35 @@ export default function Home() {
     setSearchTx(targetHash); 
     setSearchLoading(true);
     setSearchResult(null);
+    
     try {
       const response = await axios.get(`http://127.0.0.1:8080/api/v1/transactions/${targetHash}`);
       const rawData = response.data.data;
+
+      // ĐIỂM CHỐT QUAN TRỌNG: Dịch dữ liệu từ Database thành Object an toàn
+      let parsedInfo = {};
+      if (rawData.original_car_info) {
+        if (typeof rawData.original_car_info === 'string') {
+          try { 
+            parsedInfo = JSON.parse(rawData.original_car_info); 
+          } catch(e) {
+            console.error("Lỗi đọc dữ liệu JSON từ Database:", e);
+          }
+        } else {
+          parsedInfo = rawData.original_car_info;
+        }
+      }
+
       const formattedResult = {
         txhash: rawData.txhash,
         license_plate: rawData.license_plate,
-        predicted_price_display: Number(rawData.predicted_price_vnd).toLocaleString() + " VND",
-        ...rawData.original_car_info,
+        // Đồng bộ định dạng tiền tệ đẹp giống hệt tab Định Giá
+        predicted_price_display: Number(rawData.predicted_price_vnd).toLocaleString('vi-VN') + " VNĐ",
+        ...parsedInfo, // Bung toàn bộ 30+ trường thông tin vào đây
       };
+      
       setSearchResult(formattedResult);
+      
     } catch (error) {
       console.error(error);
       alert("Không tìm thấy mã giao dịch này!");
