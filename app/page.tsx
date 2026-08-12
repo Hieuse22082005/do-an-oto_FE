@@ -174,7 +174,7 @@ export default function Home() {
         const provider = new ethers.BrowserProvider((window as any).ethereum);
         const accounts = await provider.send("eth_requestAccounts", []);
         const network = await provider.getNetwork();
-        if (network.chainId !== 11155111n) {
+        if (network.chainId !== BigInt(11155111)) {
           alert("Sai mạng lưới! Vui lòng chuyển sang Sepolia Testnet.");
           return false;
         }
