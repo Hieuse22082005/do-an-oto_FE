@@ -33,6 +33,8 @@ export default function Home() {
   const [searchResult, setSearchResult] = useState<any>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
+  const [txHistory, setTxHistory] = useState<any[]>([]);
+
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -44,6 +46,17 @@ export default function Home() {
     });
     return () => { authListener.subscription.unsubscribe(); };
   }, []);
+
+  useEffect(() => {
+    if (user?.email) {
+      const savedHistory = localStorage.getItem(`txHistory_${user.email}`);
+      if (savedHistory) {
+        setTxHistory(JSON.parse(savedHistory));
+      }
+    } else {
+      setTxHistory([]);
+    }
+  }, [user]);
 
   const handleAuthChange = (e: any) => {
     setAuthForm({ ...authForm, [e.target.name]: e.target.value });
@@ -200,6 +213,20 @@ export default function Home() {
       const fullData = { ...response.data.data, ...formData };
       setResult(fullData);
       setStep(4);
+
+      if (user?.email) {
+        const newItem = {
+          txhash: tx.hash,
+          license_plate: formData.license_plate,
+          date: new Date().toLocaleString('vi-VN')
+        };
+        setTxHistory((prev: any) => {
+          const newHistory = [newItem, ...prev];
+          localStorage.setItem(`txHistory_${user.email}`, JSON.stringify(newHistory));
+          return newHistory;
+        });
+      }
+
     } catch (error) {
       console.error("Lỗi xử lý:", error);
       alert("Giao dịch bị hủy hoặc có lỗi xảy ra!");
@@ -208,12 +235,15 @@ export default function Home() {
     }
   };
 
-  const handleSearchTx = async () => {
-    if (!searchTx) return;
+  const handleSearchTx = async (hashToSearch?: string) => {
+    const targetHash = typeof hashToSearch === 'string' ? hashToSearch : searchTx;
+    if (!targetHash) return;
+    
+    setSearchTx(targetHash); 
     setSearchLoading(true);
     setSearchResult(null);
     try {
-      const response = await axios.get(`http://127.0.0.1:8080/api/v1/transactions/${searchTx}`);
+      const response = await axios.get(`http://127.0.0.1:8080/api/v1/transactions/${targetHash}`);
       const rawData = response.data.data;
       const formattedResult = {
         txhash: rawData.txhash,
@@ -258,6 +288,31 @@ export default function Home() {
       return String(val);
     };
 
+    // Chuẩn bị mảng dữ liệu để map ra các card
+    const carDetails = [
+      { label: "Hãng xe", value: safeRender(data.Vehicle_brand), icon: "🏢" },
+      { label: "Dòng xe", value: safeRender(data.Vehicle_model), icon: "🚘" },
+      { label: "Năm sản xuất", value: safeRender(data.Production_year), icon: "📅" },
+      { label: "Odo (Km)", value: `${safeRender(data.Mileage_km)} km`, icon: "🛣️" },
+      { label: "Kiểu dáng", value: safeRender(data.Type), icon: "🚙" },
+      { label: "Nhiên liệu", value: safeRender(data.Fuel_type), icon: "⛽" },
+      { label: "Dung tích (cm3)", value: safeRender(data.Displacement_cm3), icon: "⚙️" },
+      { label: "Công suất (HP)", value: safeRender(data.Power_HP), icon: "🐎" },
+      { label: "Hộp số", value: safeRender(data.Transmission), icon: "🕹️" },
+      { label: "Hệ dẫn động", value: safeRender(data.Drive), icon: "🛞" },
+      { label: "Màu sắc", value: safeRender(data.Colour), icon: "🎨" },
+      { label: "Số cửa / Ghế", value: `${safeRender(data.Doors_number)} / ${safeRender(data.Seats_count)}`, icon: "🚪" },
+      { label: "Tình trạng", value: safeRender(data.Condition), icon: "🔍" },
+      { label: "Xuất xứ", value: safeRender(data.Origin_country), icon: "🌍" },
+      { label: "Số đời chủ", value: safeRender(data.previous_owners), icon: "👤" },
+      { label: "Không tai nạn", value: safeRender(data.Accident_free), icon: "🛡️" },
+      { label: "Lịch sử bảo dưỡng", value: safeRender(data.Service_record_available), icon: "🔧" },
+      { label: "Chủ đầu tiên", value: safeRender(data.First_owner), icon: "🥇" },
+      { label: "Điều hòa", value: safeRender(data.Air_conditioning), icon: "❄️" },
+      { label: "Ghế da / Vành đúc", value: `${safeRender(data.Leather_seats)} / ${safeRender(data.Alloy_wheels)}`, icon: "💺" },
+      { label: "Năm sinh chủ xe", value: safeRender(data.Owner_birth_year), icon: "🎂" },
+    ];
+
     return (
       <div id="certificate-print" className="bg-white p-8 md:p-10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-gray-100 relative overflow-hidden animate-[fadeInUp_0.5s_ease-out]">
         <CertifiedStamp />
@@ -266,11 +321,11 @@ export default function Home() {
           <p className="text-gray-500">Người yêu cầu: {user?.user_metadata?.display_name || user?.email} | Mã giao dịch: {data.txhash}</p>
         </div>
         <div className="grid gap-6 md:grid-cols-2 mb-8 relative z-10 pt-4">
-          <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100">
+          <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
             <p className="text-gray-500 text-sm font-bold uppercase tracking-wider mb-2">Giá thị trường dự đoán</p>
             <p className="text-3xl md:text-4xl font-black text-blue-600">{safeRender(data.predicted_price_display || data.predicted_price_vnd)}</p>
           </div>
-          <div className={`p-6 rounded-2xl border ${isVIP ? 'bg-gradient-to-br from-amber-50 to-yellow-100 border-yellow-300 ring-2 ring-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.3)]' : 'bg-gray-50 border-gray-100'}`}>
+          <div className={`p-6 rounded-2xl border transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${isVIP ? 'bg-gradient-to-br from-amber-50 to-yellow-100 border-yellow-300 ring-2 ring-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.3)]' : 'bg-gray-50 border-gray-100'}`}>
             <p className={`text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-2 ${isVIP ? 'text-yellow-700' : 'text-gray-500'}`}>
               Biển số xe {isVIP && <span className="text-lg animate-bounce">👑 VIP</span>}
             </p>
@@ -278,56 +333,53 @@ export default function Home() {
               {safeRender(data.license_plate)}
             </p>
           </div>
-          <div className="bg-gray-50/80 p-6 rounded-2xl border border-gray-200 md:col-span-2">
-            <p className="text-gray-900 font-bold mb-4 uppercase tracking-wider text-xs border-b pb-2 flex items-center justify-between">
-              <span>📋 Chi tiết toàn bộ thông số xe (30+ Trường dữ liệu AI)</span>
-            </p>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-y-3 gap-x-6 text-sm">
-              <div><span className="text-gray-400 block text-xs">Hãng xe</span> <strong className="text-gray-800">{safeRender(data.Vehicle_brand)}</strong></div>
-              <div><span className="text-gray-400 block text-xs">Dòng xe</span> <strong className="text-gray-800">{safeRender(data.Vehicle_model)}</strong></div>
-              <div><span className="text-gray-400 block text-xs">Năm sản xuất</span> <strong className="text-gray-800">{safeRender(data.Production_year)}</strong></div>
-              <div><span className="text-gray-400 block text-xs">Odo (Km)</span> <strong className="text-gray-800">{safeRender(data.Mileage_km)} km</strong></div>
-              <div><span className="text-gray-400 block text-xs">Kiểu dáng</span> <strong className="text-gray-800">{safeRender(data.Type)}</strong></div>
-              <div><span className="text-gray-400 block text-xs">Nhiên liệu</span> <strong className="text-gray-800">{safeRender(data.Fuel_type)}</strong></div>
-              <div><span className="text-gray-400 block text-xs">Dung tích (cm3)</span> <strong className="text-gray-800">{safeRender(data.Displacement_cm3)}</strong></div>
-              <div><span className="text-gray-400 block text-xs">Công suất (HP)</span> <strong className="text-gray-800">{safeRender(data.Power_HP)}</strong></div>
-              <div><span className="text-gray-400 block text-xs">Hộp số</span> <strong className="text-gray-800">{safeRender(data.Transmission)}</strong></div>
-              <div><span className="text-gray-400 block text-xs">Hệ dẫn động</span> <strong className="text-gray-800">{safeRender(data.Drive)}</strong></div>
-              <div><span className="text-gray-400 block text-xs">Màu sắc</span> <strong className="text-gray-800">{safeRender(data.Colour)}</strong></div>
-              <div><span className="text-gray-400 block text-xs">Số cửa / Ghế</span> <strong className="text-gray-800">{safeRender(data.Doors_number)} / {safeRender(data.Seats_count)}</strong></div>
-              <div><span className="text-gray-400 block text-xs">Tình trạng</span> <strong className="text-gray-800">{safeRender(data.Condition)}</strong></div>
-              <div><span className="text-gray-400 block text-xs">Xuất xứ</span> <strong className="text-gray-800">{safeRender(data.Origin_country)}</strong></div>
-              <div><span className="text-gray-400 block text-xs">Số đời chủ</span> <strong className="text-gray-800">{safeRender(data.previous_owners)}</strong></div>
-              <div><span className="text-gray-400 block text-xs">Không tai nạn</span> <strong className="text-gray-800">{safeRender(data.Accident_free)}</strong></div>
-              <div><span className="text-gray-400 block text-xs">Lịch sử bảo dưỡng</span> <strong className="text-gray-800">{safeRender(data.Service_record_available)}</strong></div>
-              <div><span className="text-gray-400 block text-xs">Chủ đầu tiên</span> <strong className="text-gray-800">{safeRender(data.First_owner)}</strong></div>
-              <div><span className="text-gray-400 block text-xs">Điều hòa</span> <strong className="text-gray-800">{safeRender(data.Air_conditioning)}</strong></div>
-              <div><span className="text-gray-400 block text-xs">Ghế da / Vành đúc</span> <strong className="text-gray-800">{safeRender(data.Leather_seats)} / {safeRender(data.Alloy_wheels)}</strong></div>
-              <div><span className="text-gray-400 block text-xs">Năm sinh chủ xe</span> <strong className="text-gray-800">{safeRender(data.Owner_birth_year)}</strong></div>
+          
+          {/* PHẦN ĐÃ NÂNG CẤP UI (THU NHỎ ICON VÀ HIỂN THỊ ĐỦ TEXT) */}
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 md:p-8 rounded-3xl border border-gray-200 md:col-span-2 shadow-inner">
+            <div className="flex items-center gap-3 mb-6 border-b border-gray-200 pb-4">
+              <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-xl">📋</div>
+              <p className="text-gray-900 font-extrabold uppercase tracking-widest text-sm">
+                Chi tiết toàn bộ thông số xe <span className="text-gray-400 font-medium text-xs ml-1">(30+ Trường dữ liệu AI)</span>
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {carDetails.map((item, idx) => (
+                <div key={idx} className="flex items-center gap-3 p-3 bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_rgb(0,0,0,0.02)] hover:border-blue-300 hover:shadow-md hover:-translate-y-1 transition-all duration-300 group">
+                  <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-xl border border-gray-100 group-hover:bg-blue-50 group-hover:scale-110 transition-all duration-300 flex-shrink-0">
+                    {item.icon}
+                  </div>
+                  <div className="flex-1">
+                    <span className="text-gray-400 block text-[9px] uppercase tracking-wider font-bold mb-0.5 leading-tight">{item.label}</span>
+                    <strong className="text-gray-800 text-xs md:text-sm block font-black leading-tight break-words">{item.value}</strong>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-          <div className="bg-orange-50/30 p-6 rounded-2xl border border-orange-100 md:col-span-2">
+
+          <div className="bg-orange-50/30 p-6 rounded-2xl border border-orange-100 md:col-span-2 transition-all duration-300 hover:shadow-md">
             <p className="text-orange-600 text-sm font-bold uppercase tracking-wider mb-3 flex items-center gap-2">
               <span className="text-lg">☯️</span> Luận giải Phong Thủy
             </p>
             <p className="text-lg text-gray-800 leading-relaxed font-serif italic">"{data.feng_shui_translation || "Chưa có dữ liệu luận giải."}"</p>
           </div>
         </div>
-        <div className="no-print bg-gray-900 p-5 rounded-xl flex flex-col md:flex-row justify-between items-center gap-4 text-white relative z-20">
+        <div className="no-print bg-gray-900 p-5 rounded-xl flex flex-col md:flex-row justify-between items-center gap-4 text-white relative z-20 hover:shadow-xl hover:shadow-blue-900/20 transition-all duration-300">
           <div className="overflow-hidden w-full flex-1">
             <p className="text-xs text-gray-400 uppercase tracking-widest mb-1 font-bold">Mã Giao Dịch (TxHash)</p>
             <div className="flex items-center gap-3">
               <p className="text-sm font-mono text-gray-200 truncate">{data.txhash}</p>
-              <button onClick={() => handleCopy(data.txhash)} className="text-gray-400 hover:text-white p-1.5 bg-gray-800 rounded-md transition-colors flex-shrink-0" title="Copy TxHash">
+              <button onClick={() => handleCopy(data.txhash)} className="text-gray-400 hover:text-white p-1.5 bg-gray-800 hover:bg-blue-600 rounded-md transition-all active:scale-90 flex-shrink-0" title="Copy TxHash">
                 {isCopied ? <span className="text-green-400 text-xs font-bold px-1">Đã copy!</span> : <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>}
               </button>
             </div>
           </div>
           <div className="flex gap-2 w-full md:w-auto">
-            <button onClick={() => window.print()} className="flex-1 md:flex-none whitespace-nowrap bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2">
+            <button onClick={() => window.print()} className="flex-1 md:flex-none whitespace-nowrap bg-emerald-600 hover:bg-emerald-500 hover:shadow-lg hover:shadow-emerald-500/30 text-white px-5 py-2.5 rounded-lg font-bold text-sm transition-all duration-300 active:scale-95 flex items-center justify-center gap-2">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> Xuất PDF
             </button>
-            <a href={`https://sepolia.etherscan.io/tx/${data.txhash}`} target="_blank" rel="noopener noreferrer" className="flex-1 md:flex-none whitespace-nowrap bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2">
+            <a href={`https://sepolia.etherscan.io/tx/${data.txhash}`} target="_blank" rel="noopener noreferrer" className="flex-1 md:flex-none whitespace-nowrap bg-blue-600 hover:bg-blue-500 hover:shadow-lg hover:shadow-blue-500/30 text-white px-5 py-2.5 rounded-lg font-bold text-sm transition-all duration-300 active:scale-95 flex items-center justify-center gap-2">
               Etherscan ↗
             </a>
           </div>
@@ -336,7 +388,6 @@ export default function Home() {
     );
   };
 
-  // ĐÃ BỔ SUNG THÊM 10 LUẬT LÀM TỔNG CỘNG 16 LUẬT
   const trafficLaws = [
     { title: "Vượt đèn đỏ / đèn vàng", fine: "4 - 6 triệu", detail: "Tước GPLX 1-3 tháng", icon: "🚦", color: "bg-red-50 text-red-600 border-red-100" },
     { title: "Quá tốc độ 10-20km/h", fine: "4 - 6 triệu", detail: "Tước GPLX 1-3 tháng", icon: "⚡", color: "bg-orange-50 text-orange-600 border-orange-100" },
@@ -378,16 +429,16 @@ export default function Home() {
     <div className="min-h-screen flex flex-col bg-[#F3F4F6] text-gray-800 font-sans selection:bg-blue-200">
       
       {showAuthModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 transition-opacity duration-300">
           <div className="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl relative animate-[scaleIn_0.3s_ease-out]">
-            <button onClick={() => { setShowAuthModal(false); setAuthMode("login"); }} className="absolute top-4 right-4 text-gray-400 hover:text-gray-800">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            <button onClick={() => { setShowAuthModal(false); setAuthMode("login"); }} className="absolute top-4 right-4 text-gray-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-full transition-all duration-300">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
             
             {authMode !== "verify" && (
-              <div className="flex bg-gray-100 p-1 rounded-xl mb-6">
-                <button onClick={() => setAuthMode("login")} className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${authMode === "login" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-900"}`}>Đăng Nhập</button>
-                <button onClick={() => setAuthMode("register")} className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${authMode === "register" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-900"}`}>Tạo Tài Khoản</button>
+              <div className="flex bg-gray-100 p-1 rounded-xl mb-6 relative">
+                <button onClick={() => setAuthMode("login")} className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 ${authMode === "login" ? "bg-white text-blue-600 shadow-md transform scale-100" : "text-gray-500 hover:text-gray-900 hover:bg-gray-200"}`}>Đăng Nhập</button>
+                <button onClick={() => setAuthMode("register")} className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 ${authMode === "register" ? "bg-white text-blue-600 shadow-md transform scale-100" : "text-gray-500 hover:text-gray-900 hover:bg-gray-200"}`}>Tạo Tài Khoản</button>
               </div>
             )}
 
@@ -399,41 +450,40 @@ export default function Home() {
             </p>
             
             {authMode === "verify" ? (
-              <form onSubmit={handleVerifyOtp} className="space-y-4">
+              <form onSubmit={handleVerifyOtp} className="space-y-4 animate-[fadeIn_0.3s_ease-out]">
                 <div>
-                  {/* ĐÃ NÂNG LÊN MAXLENGTH 8 */}
-                  <input type="text" name="otp" maxLength={8} value={authForm.otp} onChange={handleAuthChange} required className="w-full bg-gray-50 border border-gray-200 p-4 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-center text-2xl font-mono tracking-[0.3em]" placeholder="--------" />
+                  <input type="text" name="otp" maxLength={8} value={authForm.otp} onChange={handleAuthChange} required className="w-full bg-gray-50 border border-gray-200 p-4 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all duration-300 outline-none text-center text-2xl font-mono tracking-[0.3em]" placeholder="--------" />
                 </div>
-                <button type="submit" disabled={authLoading} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg mt-4">
+                <button type="submit" disabled={authLoading} className="w-full bg-emerald-600 hover:bg-emerald-500 hover:shadow-[0_8px_20px_rgba(16,185,129,0.3)] hover:-translate-y-1 active:scale-95 text-white font-bold py-3.5 rounded-xl transition-all duration-300 mt-4">
                   {authLoading ? "Đang xác thực..." : "Xác nhận Đăng Nhập"}
                 </button>
                 <div className="text-center mt-4">
-                  <button type="button" onClick={() => setAuthMode("login")} className="text-sm text-blue-600 hover:underline">Thử lại Email khác</button>
+                  <button type="button" onClick={() => setAuthMode("login")} className="text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors duration-200">Thử lại Email khác</button>
                 </div>
               </form>
             ) : (
-              <form onSubmit={handleSendOtp} className="space-y-4">
+              <form onSubmit={handleSendOtp} className="space-y-4 animate-[fadeIn_0.3s_ease-out]">
                 {authMode === "register" && (
-                  <>
+                  <div className="space-y-4 animate-[fadeInUp_0.3s_ease-out]">
                     <div>
                       <label className="block text-sm font-bold text-gray-700 mb-1">Họ và Tên</label>
-                      <input type="text" name="fullName" value={authForm.fullName} onChange={handleAuthChange} required={authMode === "register"} className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" placeholder="VD: Nguyễn Văn A" />
+                      <input type="text" name="fullName" value={authForm.fullName} onChange={handleAuthChange} required={authMode === "register"} className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white hover:border-gray-300 transition-all duration-300 outline-none" placeholder="VD: Nguyễn Văn A" />
                     </div>
                     <div>
                       <label className="block text-sm font-bold text-gray-700 mb-1">Số điện thoại</label>
-                      <input type="tel" name="phone" value={authForm.phone} onChange={handleAuthChange} required={authMode === "register"} className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" placeholder="VD: 0987654321" />
+                      <input type="tel" name="phone" value={authForm.phone} onChange={handleAuthChange} required={authMode === "register"} className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white hover:border-gray-300 transition-all duration-300 outline-none" placeholder="VD: 0987654321" />
                     </div>
-                  </>
+                  </div>
                 )}
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-1">Email của bạn</label>
-                  <input type="email" name="email" value={authForm.email} onChange={handleAuthChange} required className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" placeholder="VD: email@gmail.com" />
+                  <input type="email" name="email" value={authForm.email} onChange={handleAuthChange} required className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white hover:border-gray-300 transition-all duration-300 outline-none" placeholder="VD: email@gmail.com" />
                 </div>
-                <button type="submit" disabled={authLoading} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg mt-4">
+                <button type="submit" disabled={authLoading} className="w-full bg-blue-600 hover:bg-blue-500 hover:shadow-[0_8px_20px_rgba(37,99,235,0.3)] hover:-translate-y-1 active:scale-95 text-white font-bold py-3.5 rounded-xl transition-all duration-300 mt-4">
                   {authLoading ? "Đang gửi mã..." : "Nhận mã OTP"}
                 </button>
                 <div className="text-center pt-3 border-t border-gray-100 mt-4">
-                  <button type="button" onClick={() => setAuthMode("verify")} className="text-sm font-semibold text-gray-500 hover:text-blue-600 transition-colors">
+                  <button type="button" onClick={() => setAuthMode("verify")} className="text-sm font-semibold text-gray-500 hover:text-blue-600 hover:scale-105 transition-all duration-300">
                     Đã có mã OTP? Chuyển sang ô nhập mã
                   </button>
                 </div>
@@ -443,57 +493,71 @@ export default function Home() {
         </div>
       )}
 
-      <header className="no-print bg-white shadow-sm sticky top-0 z-50">
+      <header className="no-print bg-white/90 backdrop-blur-md shadow-sm sticky top-0 z-50 transition-all duration-300 border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => { setActiveTab("home"); setStep(1); setResult(null); }}>
-            <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white font-bold text-xl">Đ</div>
-            <span className="font-extrabold text-xl tracking-tight text-gray-900">địnhgiá<span className="text-blue-600">xe</span>.ai</span>
+          <div className="flex items-center gap-2 cursor-pointer group" onClick={() => { setActiveTab("home"); setStep(1); setResult(null); }}>
+            <div className="w-8 h-8 bg-blue-600 group-hover:bg-blue-700 group-hover:rotate-12 rounded flex items-center justify-center text-white font-bold text-xl transition-all duration-300 shadow-md">Đ</div>
+            <span className="font-extrabold text-xl tracking-tight text-gray-900 group-hover:text-blue-600 transition-colors duration-300">địnhgiá<span className="text-blue-600">xe</span>.ai</span>
           </div>
           
-          <div className="flex items-center gap-6 text-sm font-bold text-gray-600">
-            <span onClick={() => setActiveTab("home")} className={`cursor-pointer transition-colors pb-1 border-b-2 ${activeTab === "home" ? "text-blue-600 border-blue-600" : "border-transparent hover:text-blue-600"}`}>Trang chủ</span>
-            <span onClick={() => requireAuth(() => { setActiveTab("evaluate"); setStep(2); setResult(null); })} className={`cursor-pointer transition-colors pb-1 border-b-2 ${activeTab === "evaluate" ? "text-blue-600 border-blue-600" : "border-transparent hover:text-blue-600"}`}>Định giá AI</span>
-            <span onClick={() => requireAuth(() => { setActiveTab("search"); setSearchResult(null); setSearchTx(""); })} className={`cursor-pointer transition-colors pb-1 border-b-2 ${activeTab === "search" ? "text-blue-600 border-blue-600" : "border-transparent hover:text-blue-600"}`}>Tra cứu TxHash</span>
+          <div className="flex items-center gap-8 text-sm font-bold text-gray-600">
+            <span onClick={() => setActiveTab("home")} className={`relative cursor-pointer py-2 group transition-colors duration-300 hover:text-blue-600 ${activeTab === "home" ? "text-blue-600" : ""}`}>
+              Trang chủ
+              <span className={`absolute left-0 bottom-0 w-full h-0.5 bg-blue-600 transition-transform duration-300 ease-out ${activeTab === "home" ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"}`}></span>
+            </span>
+            <span onClick={() => requireAuth(() => { setActiveTab("evaluate"); setStep(2); setResult(null); })} className={`relative cursor-pointer py-2 group transition-colors duration-300 hover:text-blue-600 ${activeTab === "evaluate" ? "text-blue-600" : ""}`}>
+              Định giá AI
+              <span className={`absolute left-0 bottom-0 w-full h-0.5 bg-blue-600 transition-transform duration-300 ease-out ${activeTab === "evaluate" ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"}`}></span>
+            </span>
+            <span onClick={() => requireAuth(() => { setActiveTab("search"); setSearchResult(null); setSearchTx(""); })} className={`relative cursor-pointer py-2 group transition-colors duration-300 hover:text-blue-600 ${activeTab === "search" ? "text-blue-600" : ""}`}>
+              Tra cứu TxHash
+              <span className={`absolute left-0 bottom-0 w-full h-0.5 bg-blue-600 transition-transform duration-300 ease-out ${activeTab === "search" ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"}`}></span>
+            </span>
             
             {user ? (
-              <div className="flex items-center gap-3 ml-4 pl-4 border-l border-gray-200">
-                <span className="bg-gray-100 text-gray-800 px-3 py-1.5 rounded-full font-medium flex items-center gap-2">
+              <div className="flex items-center gap-3 ml-2 pl-6 border-l border-gray-200">
+                <span className="bg-gray-50 border border-gray-100 text-gray-800 px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-default">
                    👋 {user.user_metadata?.display_name || user.email.split('@')[0]}
                 </span>
-                <button onClick={handleLogout} className="text-red-500 hover:text-red-600 hover:underline">Thoát</button>
+                <button onClick={handleLogout} className="text-gray-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition-all duration-300" title="Đăng xuất">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                </button>
               </div>
             ) : (
-              <button onClick={() => { setShowAuthModal(true); setAuthMode("login"); }} className="ml-4 bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">Đăng nhập</button>
+              <button onClick={() => { setShowAuthModal(true); setAuthMode("login"); }} className="ml-2 bg-gray-900 text-white px-5 py-2.5 rounded-xl hover:bg-blue-600 hover:shadow-[0_8px_15px_rgba(37,99,235,0.3)] hover:-translate-y-1 active:scale-95 transition-all duration-300 font-bold">
+                Đăng nhập
+              </button>
             )}
           </div>
         </div>
       </header>
 
-      <main className="flex-grow max-w-6xl mx-auto px-6 pt-12 pb-20 w-full">
+      <main key={activeTab} className="flex-grow max-w-6xl mx-auto px-6 pt-12 pb-20 w-full animate-[fadeInUp_0.4s_ease-out]">
+        
         {activeTab === "home" && (
-          <div className="space-y-24 animate-[fadeIn_0.5s_ease-out]">
+          <div className="space-y-24">
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div className="space-y-8">
                 <h1 className="text-5xl font-extrabold leading-tight text-gray-900">Có gì ở <span className="text-blue-600">địnhgiáxe.ai</span>? ⚡</h1>
                 <div className="space-y-4">
-                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">Định giá bằng AI <span className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded ml-2">MỚI</span></h3>
+                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-default">
+                    <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center">Định giá bằng AI <span className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded ml-3 animate-pulse">MỚI</span></h3>
                     <p className="text-gray-500">Biết chiếc xe của bạn đáng giá bao nhiêu theo dữ liệu thị trường thực tế.</p>
                   </div>
-                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-default">
                     <h3 className="text-lg font-bold text-gray-900 mb-2">Minh bạch qua Blockchain</h3>
                     <p className="text-gray-500">Chứng nhận định giá được cấp mộc điện tử và có thể xuất file PDF bất cứ lúc nào.</p>
                   </div>
                 </div>
-                <button onClick={() => requireAuth(() => { setActiveTab("evaluate"); setStep(2); })} className="bg-gray-900 hover:bg-blue-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl active:scale-95">
-                  Dùng thử Định Giá Ngay →
+                <button onClick={() => requireAuth(() => { setActiveTab("evaluate"); setStep(2); })} className="bg-gray-900 hover:bg-blue-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(37,99,235,0.4)] active:scale-95 flex items-center gap-2 group">
+                  Dùng thử Định Giá Ngay <span className="transform group-hover:translate-x-1 transition-transform">→</span>
                 </button>
               </div>
               <div className="relative flex justify-center items-center">
-                <div className="absolute inset-0 bg-blue-100 rounded-full blur-3xl opacity-50 animate-pulse"></div>
-                <div className="relative bg-white p-8 rounded-3xl shadow-2xl border border-gray-100 w-full max-w-sm transform rotate-2 hover:rotate-0 transition-transform duration-500">
+                <div className="absolute inset-0 bg-blue-100 rounded-full blur-3xl opacity-50 animate-[pulse_3s_ease-in-out_infinite]"></div>
+                <div className="relative bg-white p-8 rounded-3xl shadow-2xl border border-gray-100 w-full max-w-sm transform rotate-2 hover:rotate-0 hover:scale-105 transition-all duration-500 cursor-pointer">
                   <div className="flex justify-between items-center mb-6 border-b pb-4">
-                    <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-2xl">🚗</div>
+                    <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">🚗</div>
                     <div className="bg-gray-900 text-white text-xs font-bold px-3 py-1 rounded-full">Web3 AI</div>
                   </div>
                   <h4 className="font-bold text-xl text-gray-800 mb-2">Giá Trị Ước Tính</h4>
@@ -505,62 +569,62 @@ export default function Home() {
               </div>
             </div>
 
-            {/* MỚI: PHẦN GIỚI THIỆU */}
             <div className="pt-16 border-t border-gray-200">
               <div className="grid md:grid-cols-2 gap-10 items-center">
-                <div className="order-2 md:order-1 rounded-3xl overflow-hidden shadow-2xl border border-gray-100 group relative">
-                  <img src="https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=600&h=400&fit=crop" alt="Giới thiệu" className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
-                    <p className="text-white font-bold">Thấu hiểu giá trị, Minh bạch niềm tin.</p>
+                <div className="order-2 md:order-1 rounded-3xl overflow-hidden shadow-2xl border border-gray-100 group relative cursor-pointer">
+                  <img src="https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=600&h=400&fit=crop" alt="Giới thiệu" className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-1000 ease-out" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end p-8 opacity-90 group-hover:opacity-100 transition-opacity duration-500">
+                    <p className="text-white font-black text-xl tracking-wide transform translate-y-2 group-hover:translate-y-0 transition-transform duration-500">Thấu hiểu giá trị, Minh bạch niềm tin.</p>
                   </div>
                 </div>
                 <div className="order-1 md:order-2">
                   <h2 className="text-3xl font-extrabold text-gray-900 mb-4">Về <span className="text-blue-600">ĐịnhGiáXe.ai</span></h2>
-                  <p className="text-gray-600 leading-relaxed mb-6">
+                  <p className="text-gray-600 leading-relaxed mb-6 text-lg">
                     Khởi nguồn từ sự thấu hiểu nỗi đau của người mua bán xe cũ về việc "bị hớ" giá, ĐịnhGiáXe.ai tự hào là nền tảng tiên phong tại Việt Nam ứng dụng Trí tuệ nhân tạo (AI) và công nghệ Web3 Blockchain vào việc thẩm định. 
                     <br/><br/>
                     Sứ mệnh của chúng tôi là chuẩn hóa và minh bạch hóa thị trường xe cũ, giúp người mua và người bán kết nối với nhau dựa trên dữ liệu thực tế và sự tin tưởng tuyệt đối.
                   </p>
-                  <ul className="space-y-3 font-medium text-gray-700">
-                    <li className="flex items-center gap-3"><span className="text-emerald-500 text-xl">✅</span> Phân tích hơn 30+ biến số kỹ thuật</li>
-                    <li className="flex items-center gap-3"><span className="text-emerald-500 text-xl">✅</span> Cập nhật dữ liệu thị trường theo thời gian thực</li>
-                    <li className="flex items-center gap-3"><span className="text-emerald-500 text-xl">✅</span> Chứng nhận Blockchain vĩnh viễn, không thể làm giả</li>
+                  <ul className="space-y-4 font-medium text-gray-700">
+                    <li className="flex items-center gap-3 hover:translate-x-2 transition-transform duration-300"><span className="bg-emerald-100 text-emerald-600 p-1.5 rounded-full shadow-sm text-sm">✓</span> Phân tích hơn 30+ biến số kỹ thuật</li>
+                    <li className="flex items-center gap-3 hover:translate-x-2 transition-transform duration-300"><span className="bg-emerald-100 text-emerald-600 p-1.5 rounded-full shadow-sm text-sm">✓</span> Cập nhật dữ liệu thị trường theo thời gian thực</li>
+                    <li className="flex items-center gap-3 hover:translate-x-2 transition-transform duration-300"><span className="bg-emerald-100 text-emerald-600 p-1.5 rounded-full shadow-sm text-sm">✓</span> Chứng nhận Blockchain vĩnh viễn, không thể làm giả</li>
                   </ul>
                 </div>
               </div>
             </div>
 
-            {/* MỚI: PHẦN BÁO CHÍ */}
             <div className="pt-16 border-t border-gray-200">
               <h2 className="text-center text-sm font-bold text-gray-400 uppercase tracking-widest mb-10">Được tin tưởng & nhắc đến bởi</h2>
-              <div className="flex flex-wrap justify-center items-center gap-10 md:gap-20 grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-700">
-                 <div className="text-3xl font-black font-serif tracking-tighter text-[#9f224e]">VNEXPRESS</div>
-                 <div className="text-3xl font-black text-[#008a66] tracking-tighter">DÂN TRÍ</div>
-                 <div className="text-3xl font-black text-[#d62828] font-sans italic tracking-tighter">AutoPro</div>
-                 <div className="text-3xl font-black text-[#005ea8] tracking-tighter">TUỔI TRẺ</div>
-                 <div className="text-3xl font-black text-gray-900 tracking-tighter">Znews</div>
+              <div className="flex flex-wrap justify-center items-center gap-10 md:gap-20">
+                 <div className="text-3xl font-black font-serif tracking-tighter text-gray-400 hover:text-[#9f224e] hover:scale-110 transition-all duration-500 cursor-pointer">VNEXPRESS</div>
+                 <div className="text-3xl font-black text-gray-400 hover:text-[#008a66] hover:scale-110 tracking-tighter transition-all duration-500 cursor-pointer">DÂN TRÍ</div>
+                 <div className="text-3xl font-black text-gray-400 hover:text-[#d62828] hover:scale-110 font-sans italic tracking-tighter transition-all duration-500 cursor-pointer">AutoPro</div>
+                 <div className="text-3xl font-black text-gray-400 hover:text-[#005ea8] hover:scale-110 tracking-tighter transition-all duration-500 cursor-pointer">TUỔI TRẺ</div>
+                 <div className="text-3xl font-black text-gray-400 hover:text-gray-900 hover:scale-110 tracking-tighter transition-all duration-500 cursor-pointer">Znews</div>
               </div>
             </div>
 
             <div className="pt-16 border-t border-gray-200">
-              <div className="mb-8">
-                <h2 className="text-3xl font-extrabold text-gray-800 uppercase tracking-tight">GIẢI MÃ NGÔN NGỮ "NGHỀ" CHO Ô TÔ</h2>
-                <p className="text-gray-500 mt-1">Những từ ngữ chủ garage, cò lái mua bán xe ô tô cũ thường dùng bạn cần biết</p>
+              <div className="mb-8 flex justify-between items-end">
+                <div>
+                  <h2 className="text-3xl font-extrabold text-gray-800 uppercase tracking-tight">GIẢI MÃ NGÔN NGỮ "NGHỀ" CHO Ô TÔ</h2>
+                  <p className="text-gray-500 mt-1">Những từ ngữ chủ garage, cò lái mua bán xe ô tô cũ thường dùng</p>
+                </div>
               </div>
               {magazineArticles.map((cat, idx) => (
-                <div key={idx} className="mb-10">
-                  <div className="flex justify-between items-end mb-4 border-b border-gray-200 pb-2">
-                    <h3 className="text-xl font-bold text-gray-900">{cat.category}</h3>
-                    <a href="#" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors flex items-center gap-1">Xem thêm <span>→</span></a>
+                <div key={idx} className="mb-12">
+                  <div className="flex justify-between items-end mb-6 border-b border-gray-200 pb-3">
+                    <h3 className="text-2xl font-bold text-gray-900">{cat.category}</h3>
+                    <a href="#" className="text-sm font-bold text-gray-500 hover:text-blue-600 transition-colors flex items-center gap-1 group">Xem thêm <span className="transform group-hover:translate-x-1 transition-transform">→</span></a>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
                     {cat.items.map((item, i) => (
                       <div key={i} className="group cursor-pointer">
-                        <div className="overflow-hidden rounded-xl mb-3 aspect-video">
-                          <img src={item.img} alt={item.title} className="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-105" />
+                        <div className="overflow-hidden rounded-2xl mb-4 aspect-video shadow-md group-hover:shadow-xl transition-shadow duration-300">
+                          <img src={item.img} alt={item.title} className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110" />
                         </div>
-                        <h4 className="font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors line-clamp-1">{item.title}</h4>
-                        <p className="text-xs text-gray-500 line-clamp-2">{item.snippet}</p>
+                        <h4 className="font-bold text-lg text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2 leading-snug">{item.title}</h4>
+                        <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed">{item.snippet}</p>
                       </div>
                     ))}
                   </div>
@@ -569,17 +633,17 @@ export default function Home() {
             </div>
 
             <div className="pt-16 border-t border-gray-200">
-              <h2 className="text-3xl font-extrabold text-gray-900 mb-8 flex items-center gap-3"><span className="text-3xl">🚨</span> Cẩm nang Lỗi vi phạm 24/7 (Ô tô)</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+              <h2 className="text-3xl font-extrabold text-gray-900 mb-8 flex items-center gap-3"><span className="text-4xl animate-bounce">🚨</span> Cẩm nang Lỗi vi phạm 24/7</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-5">
                 {trafficLaws.map((law, index) => (
-                  <div key={index} className={`p-4 rounded-2xl border ${law.color} bg-opacity-50 hover:bg-opacity-100 transition-colors cursor-pointer flex flex-col justify-between`}>
+                  <div key={index} className={`p-4 rounded-2xl border ${law.color} bg-opacity-30 hover:bg-opacity-100 transition-all duration-300 cursor-pointer flex flex-col justify-between hover:-translate-y-2 hover:shadow-lg`}>
                     <div>
-                      <div className="text-2xl mb-2">{law.icon}</div>
-                      <h3 className="font-bold text-gray-900 mb-1 text-xs leading-tight line-clamp-2">{law.title}</h3>
+                      <div className="text-3xl mb-3 transform hover:scale-110 transition-transform">{law.icon}</div>
+                      <h3 className="font-bold text-gray-900 mb-2 text-xs leading-tight line-clamp-3">{law.title}</h3>
                     </div>
                     <div>
                       <p className="text-sm font-black mb-1">{law.fine}</p>
-                      <p className="text-[10px] font-medium opacity-80 line-clamp-1">{law.detail}</p>
+                      <p className="text-[10px] font-semibold opacity-70 line-clamp-2 leading-tight">{law.detail}</p>
                     </div>
                   </div>
                 ))}
@@ -587,16 +651,18 @@ export default function Home() {
             </div>
 
             <div className="pt-16 border-t border-gray-200 pb-10">
-              <div className="grid md:grid-cols-3 gap-8">
-                <div className="md:col-span-1"><h2 className="text-3xl font-extrabold text-gray-800">Câu hỏi thường gặp</h2></div>
-                <div className="md:col-span-2 space-y-3">
+              <div className="grid md:grid-cols-3 gap-10">
+                <div className="md:col-span-1"><h2 className="text-3xl font-extrabold text-gray-800 sticky top-24">Câu hỏi thường gặp</h2></div>
+                <div className="md:col-span-2 space-y-4">
                   {faqs.map((faq, index) => (
-                    <div key={index} className={`bg-white rounded-xl border ${openFaq === index ? 'border-gray-300 shadow-sm' : 'border-gray-100'} overflow-hidden transition-all duration-300`}>
-                      <button onClick={() => setOpenFaq(openFaq === index ? null : index)} className="w-full text-left px-6 py-4 font-semibold text-gray-900 flex justify-between items-center focus:outline-none">
-                        {faq.q}
-                        <svg className={`w-5 h-5 text-gray-400 transform transition-transform duration-300 ${openFaq === index ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <div key={index} className={`bg-white rounded-2xl border ${openFaq === index ? 'border-blue-300 shadow-md ring-4 ring-blue-50' : 'border-gray-100 hover:border-gray-300'} overflow-hidden transition-all duration-300`}>
+                      <button onClick={() => setOpenFaq(openFaq === index ? null : index)} className="w-full text-left px-6 py-5 font-bold text-gray-900 flex justify-between items-center focus:outline-none">
+                        <span className="text-lg">{faq.q}</span>
+                        <span className={`w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 text-gray-400 transition-all duration-300 ${openFaq === index ? 'bg-blue-100 text-blue-600 rotate-180' : ''}`}>
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </span>
                       </button>
-                      <div className={`px-6 text-sm text-gray-600 leading-relaxed transition-all duration-300 ease-in-out ${openFaq === index ? 'max-h-40 pb-4 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>{faq.a}</div>
+                      <div className={`px-6 text-gray-600 leading-relaxed transition-all duration-300 ease-in-out ${openFaq === index ? 'max-h-40 pb-6 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>{faq.a}</div>
                     </div>
                   ))}
                 </div>
@@ -605,44 +671,76 @@ export default function Home() {
           </div>
         )}
 
-        {/* ... (CÁC PHẦN ĐỊNH GIÁ & TRA CỨU GIỮ NGUYÊN) ... */}
         {activeTab === "search" && (
-          <div className="max-w-3xl mx-auto animate-[fadeIn_0.3s_ease-out]">
-            <h1 className="no-print text-3xl font-extrabold text-gray-900 mb-2 text-center">Tra Cứu Chứng Nhận Định Giá</h1>
-            <p className="no-print text-gray-500 text-center mb-8">Xin chào {user?.user_metadata?.display_name || user?.email}, hãy nhập mã giao dịch (TxHash) trên mạng Sepolia để tra cứu.</p>
-            <div className="no-print flex gap-3 mb-10">
-              <input type="text" placeholder="Nhập mã TxHash..." value={searchTx} onChange={(e) => setSearchTx(e.target.value)} className="flex-1 bg-white border border-gray-300 p-4 rounded-xl outline-none" />
-              <button onClick={handleSearchTx} disabled={searchLoading || !searchTx} className="bg-gray-900 hover:bg-blue-600 text-white px-8 py-4 rounded-xl font-bold shadow-md">
-                {searchLoading ? "Đang tìm..." : "Tra Cứu"}
+          <div className="max-w-3xl mx-auto">
+            <h1 className="no-print text-4xl font-extrabold text-gray-900 mb-3 text-center tracking-tight">Tra Cứu Chứng Nhận Định Giá</h1>
+            <p className="no-print text-gray-500 text-center mb-10 text-lg">Xin chào <span className="font-bold text-blue-600">{user?.user_metadata?.display_name || user?.email}</span>, hãy nhập mã giao dịch (TxHash) trên mạng Sepolia để tra cứu.</p>
+            
+            <div className="no-print flex flex-col sm:flex-row gap-4 mb-10 bg-white p-3 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 hover:shadow-lg transition-shadow duration-300">
+              <input type="text" placeholder="Nhập mã TxHash (VD: 0x123abc...)" value={searchTx} onChange={(e) => setSearchTx(e.target.value)} className="flex-1 bg-gray-50 border border-transparent hover:border-gray-200 p-4 rounded-xl outline-none focus:bg-white focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 text-gray-800 font-mono" />
+              <button onClick={() => handleSearchTx()} disabled={searchLoading || !searchTx} className="bg-gray-900 hover:bg-blue-600 text-white px-10 py-4 rounded-xl font-bold shadow-md hover:shadow-[0_8px_20px_rgba(37,99,235,0.3)] hover:-translate-y-1 active:scale-95 transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none">
+                {searchLoading ? <span className="flex items-center gap-2"><svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Đang tìm...</span> : "Tra Cứu Ngay"}
               </button>
             </div>
+
+            {txHistory.length > 0 && !searchResult && (
+              <div className="no-print mb-10 bg-white p-8 rounded-3xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] animate-[fadeInUp_0.4s_ease-out]">
+                <h3 className="text-xl font-extrabold text-gray-900 mb-6 flex items-center gap-3 border-b pb-4">
+                  <span className="bg-blue-100 p-2 rounded-xl text-blue-600">🕒</span> Lịch sử định giá của bạn
+                </h3>
+                <div className="space-y-4 max-h-[400px] overflow-y-auto pr-3 custom-scrollbar">
+                  {txHistory.map((item, idx) => (
+                    <div 
+                      key={idx} 
+                      onClick={() => handleSearchTx(item.txhash)}
+                      className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-5 bg-white rounded-2xl border border-gray-100 hover:border-blue-300 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
+                    >
+                      <div className="flex items-center gap-5">
+                        <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center text-2xl group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300 shadow-sm border border-gray-100">🚗</div>
+                        <div>
+                          <p className="font-extrabold text-lg text-gray-900 group-hover:text-blue-700 transition-colors">{item.license_plate}</p>
+                          <p className="text-sm text-gray-400 font-mono mt-1 truncate max-w-[200px] md:max-w-sm group-hover:text-blue-400 transition-colors">{item.txhash}</p>
+                        </div>
+                      </div>
+                      <div className="mt-3 sm:mt-0 text-sm font-bold text-gray-500 bg-gray-50 px-4 py-2 rounded-xl border border-gray-100 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors duration-300">
+                        {item.date}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {searchResult && <ResultView data={searchResult} />}
           </div>
         )}
 
         {activeTab === "evaluate" && step === 2 && (
-          <div className="max-w-3xl mx-auto bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 p-8 md:p-10 animate-[fadeInUp_0.4s_ease-out]">
-            <div className="flex justify-between items-center mb-6 border-b pb-4">
+          <div className="max-w-4xl mx-auto bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 p-8 md:p-12 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 to-emerald-400"></div>
+            
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 border-b border-gray-100 pb-6 gap-4">
               <div>
-                <h2 className="text-3xl font-extrabold text-gray-900">Thông tin xe</h2>
-                <p className="text-gray-500 text-sm">Điền form hoặc dán mã JSON để AI định giá nhanh.</p>
+                <h2 className="text-4xl font-extrabold text-gray-900 mb-2">Thông số đánh giá</h2>
+                <p className="text-gray-500 text-lg">Hệ thống AI phân tích dựa trên hơn 30+ trường dữ liệu.</p>
               </div>
-              <div className="flex bg-gray-100 p-1 rounded-xl">
-                <button onClick={() => setInputMode("form")} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${inputMode === "form" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500"}`}>Nhập Form</button>
-                <button onClick={() => { setInputMode("json"); setJsonInputText(JSON.stringify(formData, null, 2)); }} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${inputMode === "json" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500"}`}>Dán JSON</button>
+              <div className="flex bg-gray-100 p-1.5 rounded-xl shadow-inner w-full md:w-auto">
+                <button onClick={() => setInputMode("form")} className={`flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 ${inputMode === "form" ? "bg-white text-blue-600 shadow-md scale-100" : "text-gray-500 hover:text-gray-900"}`}>Nhập Form</button>
+                <button onClick={() => { setInputMode("json"); setJsonInputText(JSON.stringify(formData, null, 2)); }} className={`flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 ${inputMode === "json" ? "bg-white text-blue-600 shadow-md scale-100" : "text-gray-500 hover:text-gray-900"}`}>Dán JSON</button>
               </div>
             </div>
+
             {inputMode === "json" ? (
-              <div className="space-y-4">
-                <textarea rows={14} value={jsonInputText} onChange={(e) => setJsonInputText(e.target.value)} className="w-full bg-gray-900 text-green-400 font-mono text-xs p-4 rounded-xl outline-none" />
-                <button onClick={handleApplyJson} className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">Áp dụng JSON</button>
+              <div className="space-y-6 animate-[fadeIn_0.3s_ease-out]">
+                <textarea rows={16} value={jsonInputText} onChange={(e) => setJsonInputText(e.target.value)} className="w-full bg-gray-900 text-emerald-400 font-mono text-sm p-6 rounded-2xl outline-none focus:ring-4 focus:ring-emerald-500/30 transition-shadow duration-300 custom-scrollbar" />
+                <button onClick={handleApplyJson} className="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-blue-500/40 hover:-translate-y-1 active:scale-95 transition-all duration-300">Nạp dữ liệu JSON</button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 mb-10 animate-[fadeIn_0.3s_ease-out]">
                 <div className="group relative">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Hãng xe</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">Hãng xe</label>
                   <div className="relative">
-                    <select name="Vehicle_brand" value={formData.Vehicle_brand} onChange={handleInputChange} className="w-full appearance-none bg-gray-50 border border-gray-200 text-gray-900 p-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all cursor-pointer font-medium hover:bg-gray-100">
+                    <select name="Vehicle_brand" value={formData.Vehicle_brand} onChange={handleInputChange} className="w-full appearance-none bg-gray-50 border border-gray-200 hover:border-gray-300 text-gray-900 p-4 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all duration-300 cursor-pointer font-bold shadow-sm hover:shadow-md">
                       <option value="Toyota">Toyota</option><option value="Honda">Honda</option><option value="Ford">Ford</option><option value="VinFast">VinFast</option>
                       <option value="Hyundai">Hyundai</option><option value="Kia">Kia</option><option value="Mazda">Mazda</option>
                     </select>
@@ -650,8 +748,8 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="group relative">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Dòng xe (Model)</label>
-                  <input type="text" name="Vehicle_model" list="car_models" placeholder="Gõ hoặc chọn dòng xe..." value={formData.Vehicle_model} onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all font-medium placeholder-gray-400 hover:bg-gray-100" />
+                  <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">Dòng xe (Model)</label>
+                  <input type="text" name="Vehicle_model" list="car_models" placeholder="Gõ hoặc chọn dòng xe..." value={formData.Vehicle_model} onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 hover:border-gray-300 text-gray-900 p-4 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all duration-300 font-bold placeholder-gray-400 shadow-sm hover:shadow-md" />
                   <datalist id="car_models">
                     <option value="Vios" /><option value="Camry" /><option value="Corolla Cross" /><option value="Innova" />
                     <option value="Fadil" /><option value="VF 5" /><option value="VF 8" /><option value="Lux A2.0" />
@@ -660,74 +758,91 @@ export default function Home() {
                   </datalist>
                 </div>
                 <div className="group">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Năm sản xuất</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">Năm sản xuất</label>
                   <div className="relative">
-                    <select name="Production_year" value={formData.Production_year} onChange={handleInputChange} className="w-full appearance-none bg-gray-50 border border-gray-200 text-gray-900 p-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all cursor-pointer font-medium hover:bg-gray-100">
+                    <select name="Production_year" value={formData.Production_year} onChange={handleInputChange} className="w-full appearance-none bg-gray-50 border border-gray-200 hover:border-gray-300 text-gray-900 p-4 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all duration-300 cursor-pointer font-bold shadow-sm hover:shadow-md">
                       {years.map(y => <option key={y} value={y}>{y}</option>)}
                     </select>
                     <DropdownIcon />
                   </div>
                 </div>
                 <div className="group">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Số Km đã đi</label>
-                  <input type="number" name="Mileage_km" value={formData.Mileage_km} onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-4 rounded-xl font-medium" />
+                  <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">Số Km đã đi (Odo)</label>
+                  <input type="number" name="Mileage_km" value={formData.Mileage_km} onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 hover:border-gray-300 text-gray-900 p-4 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all duration-300 font-bold shadow-sm hover:shadow-md" />
                 </div>
                 <div className="group">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Năm sinh chủ xe</label>
-                  <input type="number" name="Owner_birth_year" value={formData.Owner_birth_year} onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-4 rounded-xl font-medium" />
+                  <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">Năm sinh chủ xe (Để luận Phong Thủy)</label>
+                  <input type="number" name="Owner_birth_year" value={formData.Owner_birth_year} onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 hover:border-gray-300 text-gray-900 p-4 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all duration-300 font-bold shadow-sm hover:shadow-md" />
                 </div>
                 <div className="group">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Biển số xe (VD: 30G-888.88)</label>
-                  <input type="text" name="license_plate" value={formData.license_plate} onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-4 rounded-xl text-xl font-mono tracking-wider uppercase font-medium" />
+                  <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">Biển số xe (VD: 30G-888.88)</label>
+                  <input type="text" name="license_plate" value={formData.license_plate} onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 hover:border-gray-300 text-blue-700 p-4 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all duration-300 text-xl font-mono tracking-widest uppercase font-black shadow-sm hover:shadow-md" />
                 </div>
               </div>
             )}
-            <div className="flex justify-between items-center pt-6 border-t border-gray-100">
-              <button onClick={() => setActiveTab("home")} className="text-gray-500 hover:text-gray-900 font-medium px-4 py-2 transition-colors flex items-center gap-2"><span>←</span> Hủy bỏ</button>
-              <button onClick={handleGoToPayment} className="bg-[#00B14F] hover:bg-[#009944] text-white px-8 py-4 rounded-xl font-bold shadow-lg shadow-green-200 transition-all transform active:scale-95">Tiếp tục thanh toán →</button>
+            
+            <div className="flex flex-col-reverse md:flex-row justify-between items-center pt-8 border-t border-gray-100 gap-4">
+              <button onClick={() => setActiveTab("home")} className="w-full md:w-auto text-gray-500 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 font-bold px-8 py-4 rounded-xl transition-colors duration-300 flex items-center justify-center gap-2"><span>←</span> Trở về Trang chủ</button>
+              <button onClick={handleGoToPayment} className="w-full md:w-auto bg-[#00B14F] hover:bg-[#009944] text-white px-10 py-4 rounded-xl font-extrabold text-lg shadow-lg hover:shadow-[0_10px_20px_rgba(0,177,79,0.3)] hover:-translate-y-1 active:scale-95 transition-all duration-300 flex items-center justify-center gap-2">Thẩm Định & Ký Web3 →</button>
             </div>
           </div>
         )}
 
         {activeTab === "evaluate" && step === 3 && (
-          <div className="max-w-md mx-auto bg-white rounded-3xl shadow-xl border border-gray-100 p-8 text-center animate-[scaleIn_0.3s_ease-out]">
-            <h2 className="text-2xl font-extrabold mb-2 text-gray-900 mt-4">Xác Nhận Dịch Vụ</h2>
-            <p className="text-gray-500 mb-8 text-sm">Cấp mộc định giá Blockchain cho xe <strong className="text-gray-900 font-mono">{formData.license_plate}</strong></p>
-            <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 mb-8">
-              <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mb-2">Phí dịch vụ Web3</p>
-              <p className="text-4xl font-black text-gray-900 flex justify-center items-baseline gap-1">0.001 <span className="text-xl text-blue-600 font-bold">ETH</span></p>
+          <div className="max-w-lg mx-auto bg-white rounded-[2rem] shadow-2xl border border-gray-100 p-10 text-center animate-[scaleIn_0.3s_ease-out]">
+            <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
             </div>
-            <button onClick={payAndEvaluate} disabled={loading} className={`w-full px-6 py-4 rounded-xl font-bold text-lg transition-all ${loading ? "bg-gray-200 text-gray-400" : "bg-gray-900 hover:bg-blue-600 text-white shadow-xl hover:-translate-y-1 active:scale-95"}`}>
-              {loading ? "Đang xử lý giao dịch..." : "Ký & Thanh Toán"}
-            </button>
+            <h2 className="text-3xl font-extrabold mb-3 text-gray-900">Xác Nhận Dịch Vụ</h2>
+            <p className="text-gray-500 mb-10 text-lg">Cấp mộc định giá Blockchain cho xe <strong className="text-gray-900 font-mono tracking-widest px-2 py-1 bg-gray-100 rounded">{formData.license_plate}</strong></p>
+            
+            <div className="bg-gradient-to-b from-gray-50 to-white p-8 rounded-3xl border border-gray-100 shadow-sm mb-10">
+              <p className="text-sm text-gray-400 font-black uppercase tracking-widest mb-3">Phí dịch vụ Web3</p>
+              <p className="text-6xl font-black text-gray-900 flex justify-center items-baseline gap-2">0.001 <span className="text-2xl text-blue-600 font-bold">ETH</span></p>
+            </div>
+            
+            <div className="flex gap-4">
+              <button onClick={() => setStep(2)} disabled={loading} className="px-6 py-4 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors duration-300 disabled:opacity-50">Hủy</button>
+              <button onClick={payAndEvaluate} disabled={loading} className={`flex-1 px-8 py-4 rounded-xl font-black text-lg transition-all duration-300 flex justify-center items-center gap-3 ${loading ? "bg-blue-400 text-white cursor-wait" : "bg-gray-900 hover:bg-blue-600 text-white shadow-xl hover:shadow-blue-500/40 hover:-translate-y-1 active:scale-95"}`}>
+                {loading ? <><svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Đang xử lý...</> : "Ký & Thanh Toán"}
+              </button>
+            </div>
           </div>
         )}
 
         {activeTab === "evaluate" && step === 4 && result && (
-          <div className="max-w-4xl mx-auto">
-            <div className="no-print text-center mb-10 animate-[fadeInUp_0.4s_ease-out]">
-              <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl shadow-inner">✓</div>
-              <h2 className="text-4xl font-extrabold text-gray-900">Chứng Nhận Hoàn Tất</h2>
+          <div className="max-w-4xl mx-auto animate-[fadeInUp_0.5s_ease-out]">
+            <div className="no-print text-center mb-12">
+              <div className="w-24 h-24 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 text-5xl shadow-inner transform hover:scale-110 transition-transform duration-300 cursor-default">✓</div>
+              <h2 className="text-4xl font-extrabold text-gray-900 mb-2">Chứng Nhận Hoàn Tất</h2>
+              <p className="text-gray-500">Mã giao dịch của bạn đã được ghi nhận trên Blockchain.</p>
             </div>
+            
             <ResultView data={result} />
-            <div className="no-print text-center mt-10">
-              <button onClick={() => { setStep(2); setResult(null); }} className="text-gray-500 hover:text-gray-900 font-bold px-6 py-3 transition-colors underline">Định giá xe khác</button>
+            
+            <div className="no-print text-center mt-12">
+              <button onClick={() => { setStep(2); setResult(null); }} className="text-gray-500 hover:text-blue-600 font-bold px-8 py-4 bg-white border border-gray-200 rounded-xl hover:shadow-lg transition-all duration-300 hover:-translate-y-1">⟲ Định giá xe khác</button>
             </div>
           </div>
         )}
       </main>
 
       <footer className="no-print bg-white border-t border-gray-200 mt-auto">
-        <div className="max-w-6xl mx-auto px-6 py-10 grid md:grid-cols-2 gap-6">
+        <div className="max-w-6xl mx-auto px-6 py-12 grid md:grid-cols-2 gap-8">
           <div>
-            <h3 className="font-extrabold text-gray-900 text-lg mb-2">địnhgiáxe.ai</h3>
-            <p className="text-sm text-gray-500">Công cụ phân tích giá xe cũ sử dụng trí tuệ nhân tạo tích hợp Web3 đầu tiên tại Việt Nam.</p>
-            <p className="text-xs text-gray-400 mt-4">Version 2.0</p>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-6 h-6 bg-gray-900 rounded flex items-center justify-center text-white font-bold text-xs">Đ</div>
+              <h3 className="font-extrabold text-gray-900 text-xl tracking-tight">địnhgiá<span className="text-blue-600">xe</span>.ai</h3>
+            </div>
+            <p className="text-sm text-gray-500 max-w-sm leading-relaxed">Công cụ phân tích giá xe cũ sử dụng Trí tuệ nhân tạo (AI) tích hợp Web3 Blockchain minh bạch đầu tiên tại Việt Nam.</p>
+            <p className="text-xs text-gray-400 mt-6 font-mono">Version 2.0.1 PRO</p>
           </div>
-          <div className="md:text-right">
-            <h3 className="font-bold text-gray-900 text-sm mb-2">Liên hệ với chúng tôi</h3>
-            <p className="text-sm text-gray-600 flex items-center md:justify-end gap-2">hotro@dinhgiaxe.ai</p>
-            <p className="text-xs text-gray-400 mt-4">© 2026 dinhgiaxe.ai</p>
+          <div className="md:text-right flex flex-col justify-between">
+            <div>
+              <h3 className="font-bold text-gray-900 text-sm mb-3 uppercase tracking-wider">Hỗ trợ khách hàng</h3>
+              <a href="mailto:hotro@dinhgiaxe.ai" className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors hover:underline">hotro@dinhgiaxe.ai</a>
+            </div>
+            <p className="text-xs text-gray-400 mt-6">© 2026 DinhGiaXe AI. All rights reserved.</p>
           </div>
         </div>
       </footer>
@@ -736,6 +851,12 @@ export default function Home() {
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        
+        /* Thay đổi thanh cuộn cho mượt mà */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #CBD5E1; border-radius: 20px; }
+        .custom-scrollbar:hover::-webkit-scrollbar-thumb { background-color: #94A3B8; }
         
         @media print {
           body { background-color: white !important; margin: 0; padding: 0; }
