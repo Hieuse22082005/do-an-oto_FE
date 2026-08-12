@@ -208,7 +208,7 @@ export default function Home() {
       await tx.wait();
       
       const payload = { txhash: tx.hash, ...formData, user_email: user.email }; 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8080";
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://dinhgiaxe-api.onrender.com"; // Thay
       const response = await axios.post(`${API_URL}/api/v1/transactions/evaluate`, payload);
       
       const fullData = { ...response.data.data, ...formData };
@@ -245,7 +245,7 @@ export default function Home() {
     setSearchResult(null);
     
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8080";
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://dinhgiaxe-api.onrender.com"; // Thay
       const response = await axios.get(`${API_URL}/api/v1/transactions/${targetHash}`);
       const rawData = response.data.data;
 
