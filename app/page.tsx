@@ -245,7 +245,8 @@ export default function Home() {
     setSearchResult(null);
     
     try {
-      const response = await axios.get(`http://127.0.0.1:8080/api/v1/transactions/${targetHash}`);
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8080";
+      const response = await axios.get(`${API_URL}/api/v1/transactions/${targetHash}`);
       const rawData = response.data.data;
 
       // ĐIỂM CHỐT QUAN TRỌNG: Dịch dữ liệu từ Database thành Object an toàn
