@@ -208,7 +208,8 @@ export default function Home() {
       await tx.wait();
       
       const payload = { txhash: tx.hash, ...formData, user_email: user.email }; 
-      const response = await axios.post("http://127.0.0.1:8080/api/v1/transactions/evaluate", payload);
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8080";
+      const response = await axios.post(`${API_URL}/api/v1/transactions/evaluate`, payload);
       
       const fullData = { ...response.data.data, ...formData };
       setResult(fullData);
