@@ -237,19 +237,26 @@ export default function Home() {
   };
 
   const handleSearchTx = async (hashToSearch?: string) => {
+    // 1. Xác định mã hash cần tìm kiếm (từ ô input hoặc được truyền vào trực tiếp)
     const targetHash = typeof hashToSearch === 'string' ? hashToSearch : searchTx;
     if (!targetHash) return;
     
+    // 2. Cập nhật trạng thái loading và xóa kết quả cũ
     setSearchTx(targetHash); 
     setSearchLoading(true);
     setSearchResult(null);
     
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://dinhgiaxe-api.onrender.com"; // Thay
+      // 3. Gọi API lấy dữ liệu từ Backend
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://dinhgiaxe-api.onrender.com"; 
       const response = await axios.get(`${API_URL}/api/v1/transactions/${targetHash}`);
+      
       const rawData = response.data.data;
+      
+      // 👉 BẮT CỜ CẢNH BÁO GIAN LẬN TỪ BACKEND
+      const isTampered = response.data.is_tampered; 
 
-      // ĐIỂM CHỐT QUAN TRỌNG: Dịch dữ liệu từ Database thành Object an toàn
+      // 4. Dịch dữ liệu từ Database thành Object an toàn (Parse JSON)
       let parsedInfo = {};
       if (rawData.original_car_info) {
         if (typeof rawData.original_car_info === 'string') {
@@ -263,20 +270,27 @@ export default function Home() {
         }
       }
 
+      // 5. Gom toàn bộ dữ liệu lại để hiển thị lên giao diện
       const formattedResult = {
         txhash: rawData.txhash,
         license_plate: rawData.license_plate,
         // Đồng bộ định dạng tiền tệ đẹp giống hệt tab Định Giá
         predicted_price_display: Number(rawData.predicted_price_vnd).toLocaleString('vi-VN') + " VNĐ",
+        
+        // 👉 ĐƯA CỜ CẢNH BÁO VÀO KẾT QUẢ ĐỂ HIỂN THỊ LÊN UI
+        isTampered: isTampered, 
+        
         ...parsedInfo, // Bung toàn bộ 30+ trường thông tin vào đây
       };
       
+      // 6. Lưu kết quả vào State để React vẽ ra màn hình
       setSearchResult(formattedResult);
       
     } catch (error) {
-      console.error(error);
-      alert("Không tìm thấy mã giao dịch này!");
+      console.error("Lỗi khi tra cứu TxHash:", error);
+      alert("Không tìm thấy mã giao dịch này hoặc có lỗi kết nối!");
     } finally {
+      // 7. Tắt trạng thái loading dù thành công hay thất bại
       setSearchLoading(false);
     }
   };
@@ -337,25 +351,50 @@ export default function Home() {
     return (
       <div id="certificate-print" className="bg-white p-8 md:p-10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-gray-100 relative overflow-hidden animate-[fadeInUp_0.5s_ease-out]">
         <CertifiedStamp />
+        
         <div className="hidden print-header text-center mb-8 border-b pb-4">
           <h1 className="text-3xl font-black text-blue-600 mb-1">CHỨNG NHẬN ĐỊNH GIÁ XE AI.WEB3</h1>
           <p className="text-gray-500">Người yêu cầu: {user?.user_metadata?.display_name || user?.email} | Mã giao dịch: {data.txhash}</p>
         </div>
-        <div className="grid gap-6 md:grid-cols-2 mb-8 relative z-10 pt-4">
-          <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
-            <p className="text-gray-500 text-sm font-bold uppercase tracking-wider mb-2">Giá thị trường dự đoán</p>
-            <p className="text-3xl md:text-4xl font-black text-blue-600">{safeRender(data.predicted_price_display || data.predicted_price_vnd)}</p>
+
+        {/* CẢNH BÁO GIAN LẬN ĐỎ RỰC - TỰ ĐỘNG HIỆN KHI BỊ SỬA DỮ LIỆU */}
+        {data.isTampered && (
+          <div className="bg-red-50 border-l-4 border-red-600 p-4 mb-6 rounded-r-lg animate-pulse shadow-md relative z-20">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <span className="text-red-600 text-3xl">⚠️</span>
+              </div>
+              <div className="ml-4">
+                <h3 className="text-sm font-black text-red-800 uppercase tracking-wider">
+                  Cảnh báo bảo mật nghiêm trọng!
+                </h3>
+                <p className="text-sm text-red-700 mt-1 font-medium leading-relaxed">
+                  Chữ ký Blockchain không khớp! Dữ liệu của tờ chứng nhận này đã bị can thiệp trái phép trên cơ sở dữ liệu. Kết quả định giá không còn hiệu lực.
+                </p>
+              </div>
+            </div>
           </div>
-          <div className={`p-6 rounded-2xl border transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${isVIP ? 'bg-gradient-to-br from-amber-50 to-yellow-100 border-yellow-300 ring-2 ring-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.3)]' : 'bg-gray-50 border-gray-100'}`}>
-            <p className={`text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-2 ${isVIP ? 'text-yellow-700' : 'text-gray-500'}`}>
-              Biển số xe {isVIP && <span className="text-lg animate-bounce">👑 VIP</span>}
+        )}
+
+        <div className="grid gap-6 md:grid-cols-2 mb-8 relative z-10 pt-4">
+          <div className={`p-6 rounded-2xl border transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${data.isTampered ? 'bg-red-50/50 border-red-200' : 'bg-blue-50/50 border-blue-100'}`}>
+            <p className={`text-sm font-bold uppercase tracking-wider mb-2 ${data.isTampered ? 'text-red-500' : 'text-gray-500'}`}>
+              Giá thị trường dự đoán {data.isTampered && "(Bị sai lệch)"}
             </p>
-            <p className={`text-3xl md:text-4xl font-black tracking-widest font-mono ${isVIP ? 'text-yellow-800' : 'text-gray-900'}`}>
+            <p className={`text-3xl md:text-4xl font-black ${data.isTampered ? 'text-red-600 line-through' : 'text-blue-600'}`}>
+              {safeRender(data.predicted_price_display || data.predicted_price_vnd)}
+            </p>
+          </div>
+
+          <div className={`p-6 rounded-2xl border transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${isVIP && !data.isTampered ? 'bg-gradient-to-br from-amber-50 to-yellow-100 border-yellow-300 ring-2 ring-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.3)]' : 'bg-gray-50 border-gray-100'}`}>
+            <p className={`text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-2 ${isVIP && !data.isTampered ? 'text-yellow-700' : 'text-gray-500'}`}>
+              Biển số xe {isVIP && !data.isTampered && <span className="text-lg animate-bounce">👑 VIP</span>}
+            </p>
+            <p className={`text-3xl md:text-4xl font-black tracking-widest font-mono ${isVIP && !data.isTampered ? 'text-yellow-800' : 'text-gray-900'}`}>
               {safeRender(data.license_plate)}
             </p>
           </div>
           
-          {/* PHẦN ĐÃ NÂNG CẤP UI (THU NHỎ ICON VÀ HIỂN THỊ ĐỦ TEXT) */}
           <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 md:p-8 rounded-3xl border border-gray-200 md:col-span-2 shadow-inner">
             <div className="flex items-center gap-3 mb-6 border-b border-gray-200 pb-4">
               <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-xl">📋</div>
@@ -386,6 +425,7 @@ export default function Home() {
             <p className="text-lg text-gray-800 leading-relaxed font-serif italic">"{data.feng_shui_translation || "Chưa có dữ liệu luận giải."}"</p>
           </div>
         </div>
+
         <div className="no-print bg-gray-900 p-5 rounded-xl flex flex-col md:flex-row justify-between items-center gap-4 text-white relative z-20 hover:shadow-xl hover:shadow-blue-900/20 transition-all duration-300">
           <div className="overflow-hidden w-full flex-1">
             <p className="text-xs text-gray-400 uppercase tracking-widest mb-1 font-bold">Mã Giao Dịch (TxHash)</p>
