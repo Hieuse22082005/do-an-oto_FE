@@ -1,26 +1,294 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@layer utilities {
+  .animate-fadeInUp { animation: fadeInUp 0.4s ease-out forwards; }
+  .animate-scaleIn { animation: scaleIn 0.3s ease-out forwards; }
+  .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@keyframes fadeIn { 
+  from { opacity: 0; } 
+  to { opacity: 1; } 
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@keyframes fadeInUp { 
+  from { opacity: 0; transform: translateY(20px); } 
+  to { opacity: 1; transform: translateY(0); } 
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@keyframes scaleIn { 
+  from { opacity: 0; transform: scale(0.95); } 
+  to { opacity: 1; transform: scale(1); } 
+}
+
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background-color: #CBD5E1; border-radius: 20px; }
+.custom-scrollbar:hover::-webkit-scrollbar-thumb { background-color: #94A3B8; }
+
+/* =========================================
+   ✨ HỆ THỐNG GIAO DIỆN ĐA SẮC MÀU ✨
+   ========================================= */
+
+/* --- 1. ĐỔI NỀN TỔNG QUAN (BACKGROUND) --- */
+body[data-theme='dark'] [class*="bg-[#F3F4F6]"] {
+  background-color: #0B0F19 !important;
+  transition: all 0.5s ease-in-out;
+}
+
+body[data-theme='mystic'] [class*="bg-[#F3F4F6]"] {
+  background-color: #020617 !important;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(124, 58, 237, 0.15), transparent 40%), 
+    radial-gradient(circle at 90% 80%, rgba(14, 165, 233, 0.15), transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(236, 72, 153, 0.08), transparent 50%) !important;
+  transition: all 0.5s ease-in-out;
+}
+
+/* --- 2. ĐỔI NỀN CÁC THẺ CARD / KHUNG ĐIỀN FORM --- */
+body[data-theme='dark'] [class*="bg-white"],
+body[data-theme='dark'] [class*="bg-gray-50"] {
+  background-color: #111827 !important;
+  border-color: #1F2937 !important;
+  transition: all 0.5s ease-in-out;
+}
+
+/* Kính mờ (Glassmorphism) đẳng cấp cho chế độ Mystic */
+body[data-theme='mystic'] [class*="bg-white"],
+body[data-theme='mystic'] [class*="bg-gray-50"] {
+  background-color: rgba(15, 23, 42, 0.45) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-color: rgba(99, 102, 241, 0.25) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4) !important;
+  transition: all 0.5s ease-in-out;
+}
+
+/* --- 3. ĐỔI MÀU CHỮ (TEXT COLORS) --- */
+/* Chữ Đen -> Chữ Trắng */
+body[data-theme='dark'] [class*="text-gray-900"],
+body[data-theme='dark'] [class*="text-gray-800"],
+body[data-theme='dark'] [class*="text-gray-700"],
+body[data-theme='mystic'] [class*="text-gray-900"],
+body[data-theme='mystic'] [class*="text-gray-800"],
+body[data-theme='mystic'] [class*="text-gray-700"] {
+  color: #F8FAFC !important;
+}
+
+/* Đổ bóng Glow chữ Phát sáng cho Mystic */
+body[data-theme='mystic'] [class*="text-gray-900"] {
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.25);
+}
+
+/* Chữ Xám mờ */
+body[data-theme='dark'] [class*="text-gray-600"],
+body[data-theme='dark'] [class*="text-gray-500"],
+body[data-theme='mystic'] [class*="text-gray-600"] {
+  color: #94A3B8 !important;
+}
+
+/* Riêng chữ phụ trong Mystic có màu Tím mộng mơ */
+body[data-theme='mystic'] [class*="text-gray-500"] {
+  color: #A5B4FC !important;
+}
+
+/* --- 4. ĐỔI MÀU ĐƯỜNG KẺ (BORDERS) --- */
+body[data-theme='dark'] [class*="border-gray-100"],
+body[data-theme='dark'] [class*="border-gray-200"] {
+  border-color: #1E293B !important;
+}
+body[data-theme='mystic'] [class*="border-gray-100"],
+body[data-theme='mystic'] [class*="border-gray-200"] {
+  border-color: rgba(99, 102, 241, 0.15) !important;
+}
+
+/* --- 5. TINH CHỈNH RIÊNG HEADER & FOOTER --- */
+body[data-theme='dark'] header {
+  background-color: rgba(11, 15, 25, 0.85) !important;
+  border-bottom-color: #1E293B !important;
+}
+body[data-theme='mystic'] header {
+  background-color: rgba(2, 6, 23, 0.6) !important;
+  border-bottom-color: rgba(99, 102, 241, 0.2) !important;
+}
+body[data-theme='dark'] footer,
+body[data-theme='mystic'] footer {
+  background-color: transparent !important;
+  border-top-color: #1E293B !important;
+}
+
+/* --- 6. CÁC NÚT BẤM CƠ BẢN --- */
+body[data-theme='dark'] button[class*="bg-gray-100"],
+body[data-theme='mystic'] button[class*="bg-gray-100"] {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: #F8FAFC !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+body[data-theme='dark'] button[class*="bg-gray-900"],
+body[data-theme='mystic'] button[class*="bg-gray-900"] {
+  background-color: #3B82F6 !important; /* Đổi nút Đen thành Xanh dương */
+  border: none !important;
+}
+/* --- 7. FIX LỖI NỀN TRẮNG CỦA CÁC THẺ LỊCH SỬ (GRADIENT OVERRIDE) --- */
+
+/* Tắt dải màu trắng lóa, thay bằng nền Xanh Đậm (Dark Blue) */
+body[data-theme='dark'] [class*="from-gray-50/60"],
+body[data-theme='mystic'] [class*="from-gray-50/60"] {
+  background-image: none !important; 
+  background-color: rgba(15, 23, 42, 0.8) !important; /* Xanh đen sâu thẳm */
+  border-color: rgba(59, 130, 246, 0.2) !important; /* Viền xanh mờ tinh tế */
+}
+
+/* Hiệu ứng khi rê chuột (Hover): Đổi sang Tím Huyền Ảo (Purple) */
+body[data-theme='dark'] [class*="from-gray-50/60"]:hover,
+body[data-theme='mystic'] [class*="from-gray-50/60"]:hover {
+  background-color: rgba(88, 28, 135, 0.4) !important; /* Nền tím mộng mơ */
+  border-color: rgba(168, 85, 247, 0.5) !important; /* Viền tím sáng rực lên */
+  box-shadow: 0 10px 25px -5px rgba(168, 85, 247, 0.2) !important; /* Đổ bóng tím */
+}
+
+/* Chỉnh lại màu của cái nút Ngày/Giờ nhỏ xíu bên phải cho đồng bộ */
+body[data-theme='dark'] [class*="group-hover:bg-blue-100"],
+body[data-theme='mystic'] [class*="group-hover:bg-blue-100"] {
+  background-color: rgba(0, 0, 0, 0.3) !important; /* Nền đen kính mờ */
+  color: #C7D2FE !important; /* Chữ màu xanh lam nhạt để dễ đọc */
+  border-color: transparent !important;
+}
+/* --- 8. FIX LỖI TƯƠNG PHẢN CÁC Ô CHI TIẾT (CHỨNG NHẬN & TOGGLE) --- */
+
+/* 1. Sửa lỗi thanh bọc Toggle (Nhập Form/Dán JSON) bị trắng lóa */
+body[data-theme='dark'] [class*="bg-gray-100"],
+body[data-theme='mystic'] [class*="bg-gray-100"] {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 2. Khung bọc 18 thông số xe (Xóa dải màu trắng) */
+body[data-theme='dark'] [class*="from-gray-50"],
+body[data-theme='mystic'] [class*="from-gray-50"] {
+  background-image: none !important; /* Tắt gradient sáng */
+  background-color: rgba(0, 0, 0, 0.25) !important; /* Đổ nền kính đen */
+  border-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* 3. Các thẻ nhỏ bên trong (18 thông số) */
+body[data-theme='dark'] .grid > div > div[class*="bg-gray-50"],
+body[data-theme='mystic'] .grid > div > div[class*="bg-gray-50"],
+body[data-theme='dark'] .grid > div[class*="bg-white"],
+body[data-theme='mystic'] .grid > div[class*="bg-white"] {
+  background-color: rgba(255, 255, 255, 0.05) !important; /* Kính mờ tinh tế */
+  border-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* 4. Ô Giá Thị Trường (Đổi sang Xanh Neon chìm) */
+body[data-theme='dark'] [class*="bg-blue-50/50"],
+body[data-theme='mystic'] [class*="bg-blue-50/50"] {
+  background-color: rgba(37, 99, 235, 0.15) !important;
+  border-color: rgba(37, 99, 235, 0.3) !important;
+}
+
+/* 5. Ô Biển Số VIP (Đổi sang Vàng Đồng và chỉnh màu chữ sáng) */
+body[data-theme='dark'] [class*="from-amber-50"],
+body[data-theme='mystic'] [class*="from-amber-50"] {
+  background-image: none !important;
+  background-color: rgba(245, 158, 11, 0.15) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+body[data-theme='dark'] [class*="text-yellow-800"],
+body[data-theme='mystic'] [class*="text-yellow-800"] {
+  color: #FDE047 !important; /* Chữ vàng sáng chói */
+}
+body[data-theme='dark'] [class*="text-yellow-700"],
+body[data-theme='mystic'] [class*="text-yellow-700"] {
+  color: #FEF08A !important;
+}
+/* =========================================
+   🔮 NÂNG CẤP ĐỘC QUYỀN CHO CHẾ ĐỘ MYSTIC
+   ========================================= */
+
+/* 1. Đổi nền Mystic thành Dải ngân hà chuyển động (Moving Aurora Gradient) */
+body[data-theme='mystic'] [class*="bg-[#F3F4F6]"] {
+  background: linear-gradient(-45deg, #020617, #1e1b4b, #3b0764, #0f172a) !important;
+  background-size: 400% 400% !important;
+  animation: galaxyMove 12s ease infinite !important;
+  transition: all 0.5s ease-in-out;
+}
+
+/* Keyframes tạo hiệu ứng ánh sáng cuộn trôi liên tục */
+@keyframes galaxyMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* 2. Ép các thẻ Card bên trong Mystic thành Kính mờ pha Tím Cực Quang */
+body[data-theme='mystic'] [class*="bg-white"],
+body[data-theme='mystic'] [class*="bg-gray-50"] {
+  background-color: rgba(17, 24, 39, 0.45) !important; /* Kính mờ tối */
+  backdrop-filter: blur(24px) !important; /* Độ nhòe cao hơn */
+  -webkit-backdrop-filter: blur(24px) !important;
+  border: 1px solid rgba(168, 85, 247, 0.3) !important; /* Viền sáng tím neon */
+  box-shadow: inset 0 0 20px rgba(168, 85, 247, 0.05), 0 10px 40px -10px rgba(139, 92, 246, 0.3) !important;
+}
+
+/* 3. Tinh chỉnh lại ánh sáng chữ cho đồng bộ không gian */
+body[data-theme='mystic'] [class*="text-gray-900"] {
+  text-shadow: 0 0 20px rgba(196, 181, 253, 0.4) !important; /* Chữ phát sáng aura tím nhạt */
+}
+/* --- 9. FIX LỖI NỀN TRẮNG CỦA CON DẤU CHỨNG NHẬN ĐỎ --- */
+
+/* Xóa cái nền tròn màu trắng lóa, thay bằng nền đen kính mờ */
+body[data-theme='dark'] [class*="border-[#D32F2F]"],
+body[data-theme='mystic'] [class*="border-[#D32F2F]"] {
+  background-color: rgba(0, 0, 0, 0.25) !important; 
+  box-shadow: inset 0 0 15px rgba(211, 47, 47, 0.15) !important; /* Đổ bóng đỏ chìm bên trong */
+}
+
+/* Thêm hiệu ứng phát sáng Neon Đỏ cực ngầu cho chữ ở chế độ Huyền ảo */
+body[data-theme='mystic'] [class*="text-[#D32F2F]"] {
+  text-shadow: 0 0 12px rgba(211, 47, 47, 0.7) !important;
+}
+
+/* Làm cho cái viền đôi (double border) cũng phát sáng */
+body[data-theme='mystic'] [class*="border-[#D32F2F]"] {
+  border-color: rgba(211, 47, 47, 0.8) !important;
+  box-shadow: 0 0 15px rgba(211, 47, 47, 0.3), inset 0 0 15px rgba(211, 47, 47, 0.2) !important;
+}
+/* --- 10. HIỆU ỨNG AI QUÉT DỮ LIỆU Ở TRANG CHỦ --- */
+
+/* Hiệu ứng vệt sáng lướt ngang (Shimmer) cho các dòng chữ */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Hiệu ứng tia Laser quét dọc thẻ Card */
+@keyframes scan {
+  0% { top: 0%; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+/* Điều chỉnh màu vệt lướt sáng cho phù hợp với từng Theme */
+body[data-theme='light'] .shimmer-line { background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent); }
+body[data-theme='dark'] .shimmer-line { background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent); }
+body[data-theme='mystic'] .shimmer-line { background: linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.4), transparent); }
+
+/* --- 11. FIX LỖI TÀNG HÌNH CHỮ Ở BẢNG GIÁ VIP (DARK/MYSTIC MODE) --- */
+
+/* Tắt dải màu vàng sáng, thay bằng nền Vàng Đen (Dark Gold) cực sang trọng */
+body[data-theme='dark'] [class*="from-yellow-50"],
+body[data-theme='mystic'] [class*="from-yellow-50"] {
+  background-image: linear-gradient(to bottom, rgba(202, 138, 4, 0.15), rgba(0, 0, 0, 0.6)) !important;
+  border-color: rgba(234, 179, 8, 0.4) !important;
+  box-shadow: 0 10px 30px -10px rgba(234, 179, 8, 0.15) !important;
+}
+
+/* Đảm bảo chữ Tiêu đề "Tài khoản VIP" sáng rõ và nổi bật */
+body[data-theme='dark'] [class*="text-yellow-700"],
+body[data-theme='mystic'] [class*="text-yellow-700"] {
+  color: #FDE047 !important; /* Đổi thành màu Vàng Neon sáng */
 }
