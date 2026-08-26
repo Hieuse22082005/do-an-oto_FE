@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ethers } from "ethers";
 import { apiService } from "../../services/api";
 import ResultCertificate from "../ResultCertificate";
+import { supabase } from '../supabaseClient';
 
 export default function EvaluateTab({ user, onGoHome }: { user: any, onGoHome: () => void }) {
   const [step, setStep] = useState(2);
@@ -46,12 +47,10 @@ export default function EvaluateTab({ user, onGoHome }: { user: any, onGoHome: (
   };
 
   const payAndEvaluate = async () => {
-    // 1. LOGIC KIỂM TRA GIỚI HẠN 3 LẦN / NGÀY CHO USER THƯỜNG
     const today = new Date().toLocaleDateString('vi-VN'); 
     const usageKey = `usage_${user?.email}_${today}`;
     const currentUsage = parseInt(localStorage.getItem(usageKey) || "0");
 
-    // Sửa lại từ >= 5 thành >= 3 cho đúng thông báo
     if (user?.tier !== 'vip' && currentUsage >= 3) {
       alert("🔒 HẾT LƯỢT SỬ DỤNG HÔM NAY!\nBạn đã dùng hết 3 lượt định giá miễn phí. Vui lòng nâng cấp VIP để sử dụng không giới hạn!");
       return; 
@@ -62,12 +61,10 @@ export default function EvaluateTab({ user, onGoHome }: { user: any, onGoHome: (
       const payloadData = { 
           ...formData, 
           user_email: user?.email,
-          txhash: "draft_mode_pending" // <-- THÊM DÒNG NÀY NHÉ!
+          txhash: "draft_mode_pending" 
       };
 
-      // ==========================================
-      // BƯỚC 1: DRAFT - GỌI API AI TÍNH NHÁP ĐỂ LẤY MÃ BĂM (carHash)
-      // ==========================================
+      // BƯỚC 1: DRAFT
       const draftRes = await fetch("http://localhost:8080/api/v1/transactions/evaluate/draft", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -76,7 +73,6 @@ export default function EvaluateTab({ user, onGoHome }: { user: any, onGoHome: (
 
       if (!draftRes.ok) {
         const error = await draftRes.json();
-        // 2. Sửa lại dòng in lỗi này để nếu FastAPI báo lỗi khác, nó sẽ in ra chữ dễ đọc thay vì [object Object]
         const errorMsg = typeof error.detail === 'object' ? JSON.stringify(error.detail) : error.detail;
         throw new Error(errorMsg || "Lỗi khi gọi AI định giá (Draft)!");
       }
@@ -84,33 +80,24 @@ export default function EvaluateTab({ user, onGoHome }: { user: any, onGoHome: (
       const draftData = await draftRes.json();
       const { predicted_price_raw, carHash, salt } = draftData;
 
-
-      // ==========================================
-      // BƯỚC 2: ANCHOR - GỌI METAMASK ĐỂ NEO carHash LÊN BLOCKCHAIN
-      // ==========================================
+      // BƯỚC 2: ANCHOR METAMASK
       if (!(window as any).ethereum) throw new Error("Vui lòng cài đặt MetaMask!");
       const provider = new ethers.BrowserProvider((window as any).ethereum);
       const signer = await provider.getSigner();
       
-      // LƯU Ý: Cập nhật ABI mới thêm tham số "string memory carHash"
       const ABI = ["function payForValuation(string memory carHash) public payable"];
       const contract = new ethers.Contract("0x2169C854f514516038A068cCF758C2b8D40bCe01", ABI, signer);
 
-      // Trừ 0 ETH nếu là VIP, trừ 0.001 ETH nếu là user thường
       const tx = await contract.payForValuation(carHash, { 
         value: ethers.parseEther(user?.tier === 'vip' ? "0" : "0.001") 
       });
       await tx.wait();
       
-      // LƯU LẠI SỐ LẦN ĐÃ SỬ DỤNG VÀO LOCAL STORAGE
       if (user?.tier !== 'vip') {
         localStorage.setItem(usageKey, (currentUsage + 1).toString());
       }
 
-
-      // ==========================================
-      // BƯỚC 3: CONFIRM - GỬI TXHASH VÀ DỮ LIỆU ĐỂ CHỐT VÀO DATABASE
-      // ==========================================
+      // BƯỚC 3: CONFIRM
       const confirmPayload = {
         txhash: tx.hash,
         carHash: carHash,
@@ -130,14 +117,32 @@ export default function EvaluateTab({ user, onGoHome }: { user: any, onGoHome: (
         throw new Error(error.detail || "Dữ liệu bị từ chối lưu vào Database!");
       }
 
-      // ==========================================
-      // BƯỚC 4: THÀNH CÔNG VÀ CHUYỂN SANG MÀN HÌNH CHỨNG NHẬN
-      // ==========================================
       const finalResult = await confirmRes.json();
+      
+      // ==========================================
+      // BẮN LOG LÊN SUPABASE NGAY LÚC CÓ KẾT QUẢ
+      // ==========================================
+      if (user) {
+        try {
+          const { error: logError } = await supabase.from('user_activity_logs').insert([{
+            email: user.email, 
+            action_type: 'EVALUATE_CAR',
+            action_details: { 
+              brand: formData.Vehicle_brand, // Bắt chuẩn tên Hãng xe
+              model: formData.Vehicle_model, // Bắt chuẩn tên Dòng xe
+              price: finalResult.data?.predicted_price || predicted_price_raw
+            }
+          }]);
+          if (logError) console.error("Lỗi Supabase Log:", logError);
+        } catch (err) {
+          console.error("Lỗi try-catch Supabase:", err);
+        }
+      }
+      // ==========================================
+
       setResult({ ...finalResult.data, ...formData });
       setStep(4);
 
-      // Lưu lịch sử giao dịch vào LocalStorage
       const prev = JSON.parse(localStorage.getItem(`txHistory_${user?.email}`) || "[]");
       localStorage.setItem(`txHistory_${user?.email}`, JSON.stringify([
         { txhash: tx.hash, license_plate: formData.license_plate, date: new Date().toLocaleString('vi-VN') }, 
@@ -183,7 +188,6 @@ export default function EvaluateTab({ user, onGoHome }: { user: any, onGoHome: (
           Cấp mộc định giá Blockchain cho biển số <strong className="text-blue-600 font-mono tracking-widest px-2.5 py-1 bg-blue-50 border border-blue-100 rounded-lg ml-1">{formData.license_plate}</strong>
         </p>
         
-        {/* 👇 KHUNG THANH TOÁN ĐÃ TÍCH HỢP LOGIC VIP */}
         <div className={`p-8 rounded-3xl text-white shadow-xl mb-8 relative overflow-hidden group ${user?.tier === 'vip' ? 'bg-gradient-to-br from-yellow-500 to-amber-700' : 'bg-gradient-to-br from-gray-900 to-blue-950'}`}>
           <div className="absolute right-0 bottom-0 translate-x-4 translate-y-4 w-32 h-32 bg-white/20 rounded-full blur-2xl transition-all"></div>
           
@@ -193,7 +197,6 @@ export default function EvaluateTab({ user, onGoHome }: { user: any, onGoHome: (
           </div>
           
           <p className="text-5xl font-black tracking-tight flex justify-center items-baseline gap-2 relative z-10">
-            {/* Logic hiển thị giá: VIP thì 0.000, Thường thì 0.001 */}
             {user?.tier === 'vip' ? "0.000" : "0.001"} 
             <span className={`text-xl font-extrabold ${user?.tier === 'vip' ? 'text-white' : 'text-cyan-400'}`}>ETH</span>
           </p>

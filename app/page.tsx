@@ -8,7 +8,8 @@ import EvaluateTab from "@/components/tabs/EvaluateTab";
 import SearchTab from "@/components/tabs/SearchTab";
 import FinesTab from '@/components/tabs/FinesTab';
 import PenaltyTab from '@/components/tabs/PenaltyTab';
-
+import AdminTab from "@/components/tabs/AdminTab";
+import { supabase } from '../supabaseClient';// Nhớ sửa đường dẫn đúng với file của bạn
 
 export default function Home() {
   const [user, setUser] = useState<any>(null);
@@ -25,15 +26,33 @@ export default function Home() {
     const userTier = localStorage.getItem("user_tier") || "standard";
     
     if (token && userEmail) {
+      // KIỂM TRA EMAIL ĐỂ CẤP QUYỀN ADMIN (Sửa thành email chính xác của bạn)
+      const isAdmin = userEmail === "duongxuanhieu22082005@gmail.com";
+
       setUser({ 
         email: userEmail, 
         user_metadata: { display_name: userEmail.split('@')[0] },
-        tier: userTier
+        tier: userTier,
+        role: isAdmin ? "admin" : "user" // DÒNG QUAN TRỌNG ĐỂ HIỆN TAB ADMIN
       });
     }
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // THÊM ĐOẠN NÀY: Bắn log Đăng xuất lên Supabase
+    if (user) {
+      try {
+        await supabase.from('user_activity_logs').insert([{
+          email: user.email,
+          action_type: 'LOGOUT',
+          action_details: { time: new Date().toISOString() }
+        }]);
+      } catch (err) {
+        console.error("Lỗi ghi log đăng xuất:", err);
+      }
+    }
+
+    // Phần logic cũ giữ nguyên
     localStorage.removeItem("access_token");
     localStorage.removeItem("user_email");
     localStorage.removeItem("user_tier");
@@ -148,7 +167,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F3F4F6] text-gray-800 font-sans selection:bg-blue-200 relative">
+    <div className="min-h-screen flex flex-col bg-[#F3F4F6] dark:bg-slate-900 text-gray-800 font-sans selection:bg-blue-200 relative z-0">
       
       {/* 🚀 NÚT DEBUG CHỈ DÀNH CHO DEV (XÓA VIP ĐỂ TEST LẠI) */}
       {user && user.tier === 'vip' && (
@@ -161,10 +180,31 @@ export default function Home() {
       )}
 
       {showAuthModal && (
-        <AuthModal onClose={() => setShowAuthModal(false)} onSuccess={(userData) => { 
-          setUser({ ...userData, tier: localStorage.getItem("user_tier") || "standard" }); 
-          setActiveTab("evaluate"); 
-        }} />
+        <AuthModal 
+          onClose={() => setShowAuthModal(false)} 
+          onSuccess={async (userData) => { 
+            const isAdmin = userData.email === "duongxuanhieu22082005@gmail.com";
+            
+            setUser({ 
+              ...userData, 
+              tier: localStorage.getItem("user_tier") || "standard",
+              role: isAdmin ? "admin" : "user" 
+            }); 
+            setActiveTab("evaluate"); 
+            setShowAuthModal(false); // Đóng modal
+
+            // THÊM ĐOẠN NÀY: Bắn log Đăng nhập lên Supabase
+            try {
+              await supabase.from('user_activity_logs').insert([{
+                email: userData.email,
+                action_type: 'LOGIN',
+                action_details: { time: new Date().toISOString() }
+              }]);
+            } catch (err) {
+              console.error("Lỗi ghi log đăng nhập:", err);
+            }
+          }} 
+        />
       )}
 
       {/* BẢNG GIÁ VIP */}
@@ -243,12 +283,31 @@ export default function Home() {
         onUpgradeVIP={() => setShowPricingModal(true)}
       />
 
+      {/* ==========================================
+          CHÈN ĐOẠN WATERMARK ĐỘNG NÀY VÀO ĐÂY
+          ========================================== */}
+      <div className="absolute top-28 left-0 w-full flex justify-center -z-10 pointer-events-none select-none overflow-hidden">
+        <span className="text-[60px] md:text-[110px] font-black uppercase tracking-tighter text-gray-200/80 dark:text-slate-800/40 whitespace-nowrap transition-all duration-500">
+          {activeTab === "home" && "ĐỊNH GIÁ XE.AI"}
+          {activeTab === "evaluate" && "PHÂN TÍCH AI"}
+          {activeTab === "search" && "TRA CỨU BLOCKCHAIN"}
+          {activeTab === "fines" && "TRA CỨU PHẠT NGUỘI"}
+          {activeTab === "penalty" && "LUẬT GIAO THÔNG"}
+          {activeTab === "admin" && "QUẢN TRỊ VIÊN"}
+        </span>
+      </div>
+
+
       <main key={activeTab} className="flex-grow max-w-6xl mx-auto px-6 pt-12 pb-20 w-full animate-[fadeInUp_0.4s_ease-out]">
         {activeTab === "home" && <HomeTab onTryNow={() => handleTabChange("evaluate")} />}
         {activeTab === "evaluate" && <EvaluateTab user={user} onGoHome={() => setActiveTab("home")} />}
         {activeTab === "search" && <SearchTab user={user} />}
-        {activeTab === "fines" && <FinesTab />}
+        
+        {/* SỬA DÒNG NÀY: Phải thêm user={user} vào thì nó mới biết ai đang tra cứu */}
+        {activeTab === "fines" && <FinesTab user={user} />}
+        
         {activeTab === "penalty" && <PenaltyTab/>}
+        {activeTab === "admin" && <AdminTab />} 
       </main>
 
       <footer className="no-print bg-white border-t border-gray-200 mt-auto">

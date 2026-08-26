@@ -91,20 +91,13 @@ export default function PenaltyTab() {
       : VIOLATIONS.filter(v => v.categoryId === activeCategory);
 
   return (
-    // THÊM overflow-hidden VÀO THẺ BAO NGOÀI CÙNG ĐỂ CHỮ KHỔNG LỒ KHÔNG LÀM TRÀN MÀN HÌNH
-    <div className="w-[100vw] relative left-1/2 -translate-x-1/2 bg-[#F8F9FA] dark:bg-slate-900 pb-20 font-sans transition-colors duration-300 overflow-hidden">
+    // Đã đổi bg-[#F8F9FA] thành bg-transparent để nhìn xuyên thấu chữ từ page.tsx
+    <div className="w-[100vw] relative left-1/2 -translate-x-1/2 bg-transparent pb-20 font-sans transition-colors duration-300 overflow-hidden">
       
-      {/* ==========================================
-          HIỆU ỨNG CHỮ ẨN (WATERMARK BACKGROUND)
-          ========================================== */}
-      <div className="absolute top-10 left-1/2 -translate-x-1/2 w-full flex justify-center z-0 pointer-events-none select-none">
-        <span className="text-[120px] md:text-[180px] font-black uppercase tracking-tighter text-gray-200/60 dark:text-slate-800/60 whitespace-nowrap">
-          LUẬT Ô TÔ
-        </span>
-      </div>
+      {/* Đã xóa khối chữ LUẬT Ô TÔ khổng lồ ở đây */}
 
-      {/* Header Banner (THÊM relative z-10 ĐỂ NỔI LÊN TRÊN CHỮ ẨN) */}
-      <div className="relative z-10 text-center py-12 border-b border-transparent dark:border-slate-800 transition-colors duration-300">
+      {/* Header Banner (Đổi bg-gradient thành bg-transparent) */}
+      <div className="relative z-10 text-center py-12 border-b border-transparent dark:border-slate-800 transition-colors duration-300 bg-transparent">
         <div className="inline-flex items-center gap-2 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-4 py-1.5 rounded-full text-sm font-semibold mb-4 border border-red-100 dark:border-red-900/50 shadow-sm animate-pulse">
           Cập Nhật Nghị Định Mới Nhất 2026 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"></path></svg>
         </div>
@@ -112,14 +105,12 @@ export default function PenaltyTab() {
           Cẩm Nang Luật <span className="text-[#E53935] dark:text-red-500">Ô Tô</span>
         </h1>
         <p className="text-gray-500 dark:text-gray-400 max-w-xl mx-auto transition-colors duration-300">
-          Tra cứu nhanh các lỗi vi phạm giao thông phổ biến dành riêng cho tài xế Ô tô. Tích hợp so sánh mức trừ điểm GPLX hệ thống mới.
+          Tra cứu nhanh 30+ lỗi vi phạm giao thông phổ biến dành riêng cho tài xế Ô tô. Tích hợp so sánh mức trừ điểm GPLX hệ thống mới.
         </p>
       </div>
 
-      {/* KHUNG CHỨA SIÊU RỘNG (THÊM relative z-10 ĐỂ NỔI LÊN TRÊN CHỮ ẨN) */}
-      <div className="relative z-10 max-w-[1600px] mx-auto px-4 lg:px-12 grid grid-cols-1 lg:grid-cols-12 gap-10 pt-8">
-        
-        {/* ... [Toàn bộ nội dung 3 cột của bạn giữ nguyên y hệt như cũ ở phía dưới] ... */}
+      {/* KHUNG CHỨA SIÊU RỘNG (1600px): Đẩy 2 cột dạt ra 2 biên */}
+      <div className="max-w-[1600px] mx-auto px-4 lg:px-12 grid grid-cols-1 lg:grid-cols-12 gap-10 pt-8">
         
         {/* ==========================================
             CỘT 1 (BÊN TRÁI): SIDEBAR MENU

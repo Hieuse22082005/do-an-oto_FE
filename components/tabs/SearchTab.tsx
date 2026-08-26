@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { apiService } from "../../services/api";
 import ResultCertificate from "../ResultCertificate";
+import { supabase } from '../supabaseClient';
 
 export default function SearchTab({ user }: { user: any }) {
   const [searchTx, setSearchTx] = useState("");
@@ -18,11 +19,31 @@ export default function SearchTab({ user }: { user: any }) {
   const handleSearchTx = async (hash?: string) => {
     const targetHash = hash || searchTx;
     if (!targetHash) return;
-    
+      
+    // ==========================================
+    // BẮN LOG TÌM KIẾM HASH LÊN SUPABASE
+    // ==========================================
+    if (user) {
+      try {
+        const { error: logError } = await supabase.from('user_activity_logs').insert([{
+          email: user.email,
+          action_type: 'SEARCH_HASH',
+          action_details: { 
+            tx_hash: targetHash,
+            time: new Date().toISOString()
+          }
+        }]);
+        if (logError) console.error("Lỗi ghi log Search Hash:", logError);
+      } catch (err) {
+        console.error("Lỗi try-catch Supabase:", err);
+      }
+    }
+    // ==========================================
+
     setSearchTx(targetHash); 
     setSearchLoading(true);
     setSearchResult(null);
-    
+      
     try {
       const response = await apiService.searchTx(targetHash);
       const rawData = response.data.data;

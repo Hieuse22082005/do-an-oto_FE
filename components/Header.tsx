@@ -83,12 +83,22 @@ export default function Header({ user, activeTab, onTabChange, onLoginClick, onL
             <span className={`absolute left-0 bottom-0 w-full h-0.5 bg-blue-600 transition-transform duration-300 ease-out ${activeTab === "fines" ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"}`}></span>
           </span>
 
-          {/* TAB MỨC PHẠT GIAO THÔNG */}
+          {/* TAB MỨC PHẠT GIAO THÔNG (Đang có sẵn) */}
           <span onClick={() => onTabChange("penalty")} className={`relative cursor-pointer py-2 group transition-colors duration-300 whitespace-nowrap hover:text-blue-600 ${activeTab === "penalty" ? "text-blue-600" : ""}`}>
             Mức Phạt Giao Thông
             <span className={`absolute left-0 bottom-0 w-full h-0.5 bg-blue-600 transition-transform duration-300 ease-out ${activeTab === "penalty" ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"}`}></span>
           </span>
-          
+
+          {/* DÒNG NÀY SẼ HIỂN THỊ NÚT ADMIN NẾU user.role === 'admin' */}
+          {user && user.role === 'admin' && (
+            <span onClick={() => onTabChange("admin")} className={`relative cursor-pointer py-2 group transition-colors duration-300 whitespace-nowrap font-black text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1 ${activeTab === "admin" ? "text-indigo-800 dark:text-indigo-300" : ""}`}>
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"></path></svg>
+              Quản trị (Admin)
+              <span className={`absolute left-0 bottom-0 w-full h-0.5 bg-indigo-600 transition-transform duration-300 ease-out ${activeTab === "admin" ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"}`}></span>
+            </span>
+          )}
+
+
           {/* USER & THEME TOGGLE (Thêm shrink-0 để không bị đẩy) */}
           <div className="flex items-center gap-3 ml-2 pl-4 border-l border-gray-200 shrink-0">
             {user ? (
