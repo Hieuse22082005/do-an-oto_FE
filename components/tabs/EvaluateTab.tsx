@@ -47,43 +47,106 @@ export default function EvaluateTab({ user, onGoHome }: { user: any, onGoHome: (
 
   const payAndEvaluate = async () => {
     // 1. LOGIC KIỂM TRA GIỚI HẠN 3 LẦN / NGÀY CHO USER THƯỜNG
-    const today = new Date().toLocaleDateString('vi-VN'); // Lấy ngày hiện tại (VD: 17/08/2026)
+    const today = new Date().toLocaleDateString('vi-VN'); 
     const usageKey = `usage_${user?.email}_${today}`;
     const currentUsage = parseInt(localStorage.getItem(usageKey) || "0");
 
-    if (user?.tier !== 'vip' && currentUsage >= 5) {
+    // Sửa lại từ >= 5 thành >= 3 cho đúng thông báo
+    if (user?.tier !== 'vip' && currentUsage >= 3) {
       alert("🔒 HẾT LƯỢT SỬ DỤNG HÔM NAY!\nBạn đã dùng hết 3 lượt định giá miễn phí. Vui lòng nâng cấp VIP để sử dụng không giới hạn!");
-      return; // Chặn không cho chạy tiếp
+      return; 
     }
 
-    // 2. LOGIC GỌI SMART CONTRACT THANH TOÁN
     setLoading(true);
     try {
-      if (!(window as any).ethereum) throw new Error("No MetaMask");
+      const payloadData = { 
+          ...formData, 
+          user_email: user?.email,
+          txhash: "draft_mode_pending" // <-- THÊM DÒNG NÀY NHÉ!
+      };
+
+      // ==========================================
+      // BƯỚC 1: DRAFT - GỌI API AI TÍNH NHÁP ĐỂ LẤY MÃ BĂM (carHash)
+      // ==========================================
+      const draftRes = await fetch("http://localhost:8080/api/v1/transactions/evaluate/draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payloadData),
+      });
+
+      if (!draftRes.ok) {
+        const error = await draftRes.json();
+        // 2. Sửa lại dòng in lỗi này để nếu FastAPI báo lỗi khác, nó sẽ in ra chữ dễ đọc thay vì [object Object]
+        const errorMsg = typeof error.detail === 'object' ? JSON.stringify(error.detail) : error.detail;
+        throw new Error(errorMsg || "Lỗi khi gọi AI định giá (Draft)!");
+      }
+
+      const draftData = await draftRes.json();
+      const { predicted_price_raw, carHash, salt } = draftData;
+
+
+      // ==========================================
+      // BƯỚC 2: ANCHOR - GỌI METAMASK ĐỂ NEO carHash LÊN BLOCKCHAIN
+      // ==========================================
+      if (!(window as any).ethereum) throw new Error("Vui lòng cài đặt MetaMask!");
       const provider = new ethers.BrowserProvider((window as any).ethereum);
       const signer = await provider.getSigner();
-      const contract = new ethers.Contract("0x6c8af48613a69eB729675eA48CA24c180Df54fAd", ["function payForValuation() public payable"], signer);
+      
+      // LƯU Ý: Cập nhật ABI mới thêm tham số "string memory carHash"
+      const ABI = ["function payForValuation(string memory carHash) public payable"];
+      const contract = new ethers.Contract("0x2169C854f514516038A068cCF758C2b8D40bCe01", ABI, signer);
 
       // Trừ 0 ETH nếu là VIP, trừ 0.001 ETH nếu là user thường
-      const tx = await contract.payForValuation({ value: ethers.parseEther(user?.tier === 'vip' ? "0" : "0.001") });
+      const tx = await contract.payForValuation(carHash, { 
+        value: ethers.parseEther(user?.tier === 'vip' ? "0" : "0.001") 
+      });
       await tx.wait();
       
-      // 3. LƯU LẠI SỐ LẦN ĐÃ SỬ DỤNG VÀO LOCAL STORAGE
+      // LƯU LẠI SỐ LẦN ĐÃ SỬ DỤNG VÀO LOCAL STORAGE
       if (user?.tier !== 'vip') {
         localStorage.setItem(usageKey, (currentUsage + 1).toString());
       }
-      
-      const payload = { txhash: tx.hash, ...formData, user_email: user.email }; 
-      const response = await apiService.evaluateCar(payload);
-      
-      setResult({ ...response.data.data, ...formData });
+
+
+      // ==========================================
+      // BƯỚC 3: CONFIRM - GỬI TXHASH VÀ DỮ LIỆU ĐỂ CHỐT VÀO DATABASE
+      // ==========================================
+      const confirmPayload = {
+        txhash: tx.hash,
+        carHash: carHash,
+        salt: salt,
+        predicted_price: predicted_price_raw,
+        vehicle_data: payloadData
+      };
+
+      const confirmRes = await fetch("http://localhost:8080/api/v1/transactions/evaluate/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(confirmPayload),
+      });
+
+      if (!confirmRes.ok) {
+        const error = await confirmRes.json();
+        throw new Error(error.detail || "Dữ liệu bị từ chối lưu vào Database!");
+      }
+
+      // ==========================================
+      // BƯỚC 4: THÀNH CÔNG VÀ CHUYỂN SANG MÀN HÌNH CHỨNG NHẬN
+      // ==========================================
+      const finalResult = await confirmRes.json();
+      setResult({ ...finalResult.data, ...formData });
       setStep(4);
 
-      const prev = JSON.parse(localStorage.getItem(`txHistory_${user.email}`) || "[]");
-      localStorage.setItem(`txHistory_${user.email}`, JSON.stringify([{ txhash: tx.hash, license_plate: formData.license_plate, date: new Date().toLocaleString('vi-VN') }, ...prev]));
+      // Lưu lịch sử giao dịch vào LocalStorage
+      const prev = JSON.parse(localStorage.getItem(`txHistory_${user?.email}`) || "[]");
+      localStorage.setItem(`txHistory_${user?.email}`, JSON.stringify([
+        { txhash: tx.hash, license_plate: formData.license_plate, date: new Date().toLocaleString('vi-VN') }, 
+        ...prev
+      ]));
 
-    } catch (error) {
-      alert("Giao dịch bị hủy hoặc lỗi MetaMask!");
+    } catch (error: any) {
+      console.error(error);
+      alert(error.message || error.reason || "Giao dịch bị hủy hoặc lỗi MetaMask!");
     } finally {
       setLoading(false);
     }

@@ -6,6 +6,9 @@ import Header from "@/components/Header";
 import HomeTab from "@/components/tabs/HomeTab";
 import EvaluateTab from "@/components/tabs/EvaluateTab";
 import SearchTab from "@/components/tabs/SearchTab";
+import FinesTab from '@/components/tabs/FinesTab';
+import PenaltyTab from '@/components/tabs/PenaltyTab';
+
 
 export default function Home() {
   const [user, setUser] = useState<any>(null);
@@ -45,7 +48,7 @@ export default function Home() {
       const signer = await provider.getSigner();
       
       // Nhớ THAY ĐỊA CHỈ CONTRACT MỚI CỦA BẠN VÀO ĐÂY NHÉ
-      const contractAddress = "0x6c8af48613a69eB729675eA48CA24c180Df54fAd";
+      const contractAddress = "0x2169C854f514516038A068cCF758C2b8D40bCe01";
       
       const contract = new ethers.Contract(contractAddress, ["function debugResetVIP() public"], signer);
       
@@ -54,8 +57,8 @@ export default function Home() {
       await tx.wait();
 
       // 2. Xóa trí nhớ trên Database Python
-      // Sửa từ "http://localhost:8000/upgrade-vip" thành:
-      const response = await fetch("http://localhost:8000/api/v1/transactions/upgrade-vip", {
+      // Sửa từ "http://localhost:8080/upgrade-vip" thành:
+      const response = await fetch("http://localhost:8080/api/v1/transactions/upgrade-vip", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -87,7 +90,7 @@ export default function Home() {
       const provider = new ethers.BrowserProvider((window as any).ethereum);
       const signer = await provider.getSigner();
 
-      const contractAddress = "0x6c8af48613a69eB729675eA48CA24c180Df54fAd";
+      const contractAddress = "0x2169C854f514516038A068cCF758C2b8D40bCe01";
       
       const contract = new ethers.Contract(
         contractAddress, 
@@ -106,7 +109,7 @@ export default function Home() {
       // Lưu ý: Đổi URL này nếu Backend Python của bạn chạy port khác hoặc đã deploy
       // 2. GỌI BACKEND PYTHON ĐỂ XÁC THỰC VÀ LƯU DATABASE
       // Lưu ý: Đổi URL này nếu Backend Python của bạn chạy port khác hoặc đã deploy
-      const response = await fetch("http://localhost:8000/api/v1/transactions/upgrade-vip", {
+      const response = await fetch("http://localhost:8080/api/v1/transactions/upgrade-vip", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -244,6 +247,8 @@ export default function Home() {
         {activeTab === "home" && <HomeTab onTryNow={() => handleTabChange("evaluate")} />}
         {activeTab === "evaluate" && <EvaluateTab user={user} onGoHome={() => setActiveTab("home")} />}
         {activeTab === "search" && <SearchTab user={user} />}
+        {activeTab === "fines" && <FinesTab />}
+        {activeTab === "penalty" && <PenaltyTab/>}
       </main>
 
       <footer className="no-print bg-white border-t border-gray-200 mt-auto">
