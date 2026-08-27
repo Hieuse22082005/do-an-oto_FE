@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import Link from "next/link"; // ĐÃ THÊM: Công cụ chuyển trang của Next.js
 
 interface HeaderProps {
   user: any;
@@ -40,10 +41,9 @@ export default function Header({ user, activeTab, onTabChange, onLoginClick, onL
 
   return (
     <header className="no-print bg-white/90 backdrop-blur-md shadow-sm sticky top-0 z-50 transition-all duration-300 border-b border-gray-100">
-      {/* Đã nới rộng ra max-w-7xl để chứa đủ các tab */}
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
         
-        {/* LOGO (Thêm shrink-0 để không bao giờ bị bóp méo) */}
+        {/* LOGO */}
         <div className="flex items-center gap-3 cursor-pointer group shrink-0" onClick={() => onTabChange("home")}>
           <div className="relative flex items-center justify-center w-11 h-11">
             <div className="absolute inset-0 bg-blue-500 rounded-2xl blur-md group-hover:blur-xl opacity-40 group-hover:opacity-80 transition-all duration-500"></div>
@@ -62,7 +62,7 @@ export default function Header({ user, activeTab, onTabChange, onLoginClick, onL
           </span>
         </div>
         
-        {/* CÁC TAB (Giảm gap xuống gap-5 và thêm whitespace-nowrap) */}
+        {/* CÁC TAB */}
         <div className="flex items-center gap-5 text-sm font-bold text-gray-600">
           <span onClick={() => onTabChange("home")} className={`relative cursor-pointer py-2 group transition-colors duration-300 whitespace-nowrap hover:text-blue-600 ${activeTab === "home" ? "text-blue-600" : ""}`}>
             Trang chủ
@@ -77,19 +77,16 @@ export default function Header({ user, activeTab, onTabChange, onLoginClick, onL
             <span className={`absolute left-0 bottom-0 w-full h-0.5 bg-blue-600 transition-transform duration-300 ease-out ${activeTab === "search" ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"}`}></span>
           </span>
           
-          {/* TAB TRA CỨU PHẠT NGUỘI */}
           <span onClick={() => onTabChange("fines")} className={`relative cursor-pointer py-2 group transition-colors duration-300 whitespace-nowrap hover:text-blue-600 ${activeTab === "fines" ? "text-blue-600" : ""}`}>
             Tra cứu Phạt nguội
             <span className={`absolute left-0 bottom-0 w-full h-0.5 bg-blue-600 transition-transform duration-300 ease-out ${activeTab === "fines" ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"}`}></span>
           </span>
 
-          {/* TAB MỨC PHẠT GIAO THÔNG (Đang có sẵn) */}
           <span onClick={() => onTabChange("penalty")} className={`relative cursor-pointer py-2 group transition-colors duration-300 whitespace-nowrap hover:text-blue-600 ${activeTab === "penalty" ? "text-blue-600" : ""}`}>
             Mức Phạt Giao Thông
             <span className={`absolute left-0 bottom-0 w-full h-0.5 bg-blue-600 transition-transform duration-300 ease-out ${activeTab === "penalty" ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"}`}></span>
           </span>
 
-          {/* DÒNG NÀY SẼ HIỂN THỊ NÚT ADMIN NẾU user.role === 'admin' */}
           {user && user.role === 'admin' && (
             <span onClick={() => onTabChange("admin")} className={`relative cursor-pointer py-2 group transition-colors duration-300 whitespace-nowrap font-black text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1 ${activeTab === "admin" ? "text-indigo-800 dark:text-indigo-300" : ""}`}>
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"></path></svg>
@@ -98,8 +95,7 @@ export default function Header({ user, activeTab, onTabChange, onLoginClick, onL
             </span>
           )}
 
-
-          {/* USER & THEME TOGGLE (Thêm shrink-0 để không bị đẩy) */}
+          {/* USER & THEME TOGGLE */}
           <div className="flex items-center gap-3 ml-2 pl-4 border-l border-gray-200 shrink-0">
             {user ? (
               <div className="flex items-center gap-2">
@@ -122,7 +118,13 @@ export default function Header({ user, activeTab, onTabChange, onLoginClick, onL
                 </button>
               </div>
             ) : (
-              <button onClick={onLoginClick} className="bg-blue-600 text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 active:scale-95 transition-all duration-300 font-bold whitespace-nowrap">Đăng nhập</button>
+              /* ĐÃ SỬA: Thay thế thẻ button bằng thẻ Link quyền lực */
+              <Link 
+                href="/login" 
+                className="bg-blue-600 text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 active:scale-95 transition-all duration-300 font-bold whitespace-nowrap flex items-center justify-center"
+              >
+                Đăng nhập
+              </Link>
             )}
 
             <button 

@@ -211,8 +211,7 @@ export default function HomeTab({ onTryNow }: { onTryNow: () => void }) {
 
               <button 
                 onClick={onTryNow} 
-                className="w-full bg-[#1d4ed8] hover:bg-[#1e40af] text-white font-bold py-5 rounded-2xl text-lg transition-all duration-300 shadow-[0_8px_20px_rgba(29,78,216,0.3)] active:scale-95 flex items-center justify-center gap-3"
-              >
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition-colors flex justify-center items-center gap-2"              >
                 Bắt Đầu Định Giá Ngay ➔
               </button>
 

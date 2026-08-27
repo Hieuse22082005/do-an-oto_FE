@@ -105,7 +105,52 @@ export default function ResultCertificate({ data, user }: { data: any; user: any
         </div>
       </div>
 
-      {/* 👑 BẢNG PHÂN TÍCH CHUYÊN SÂU - CHỈ DÀNH CHO VIP (Đặt đúng vị trí bên trong giao diện) */}
+      {/* ======================================================== */}
+      {/* 🏷️ KHU VỰC TÙY CHỌN & TRANG BỊ CAO CẤP (THEO THẺ TAG) */}
+      {/* ======================================================== */}
+      <div className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-[0_2px_15px_rgb(0,0,0,0.03)] mb-8 relative z-10">
+        <h3 className="text-sm font-extrabold text-gray-800 mb-5 uppercase tracking-widest flex items-center gap-2 border-b border-gray-100 pb-3">
+          <span className="text-xl">✨</span> Trang bị thêm đã được lên 
+        </h3>
+        
+        <div className="flex flex-wrap gap-3">
+          {data.Air_conditioning === "auto" && (
+            <span className="px-4 py-2.5 bg-blue-50 text-blue-700 font-bold rounded-xl text-sm border border-blue-100 shadow-sm flex items-center gap-2">❄️ Điều hòa tự động</span>
+          )}
+          {data.Alloy_wheels && (
+            <span className="px-4 py-2.5 bg-gray-50 text-gray-700 font-bold rounded-xl text-sm border border-gray-200 shadow-sm flex items-center gap-2">🛞 Mâm hợp kim</span>
+          )}
+          {data.Leather_seats && (
+            <span className="px-4 py-2.5 bg-amber-50 text-amber-700 font-bold rounded-xl text-sm border border-amber-100 shadow-sm flex items-center gap-2">💺 Ghế da cao cấp</span>
+          )}
+          {data.Navigation_system && (
+            <span className="px-4 py-2.5 bg-indigo-50 text-indigo-700 font-bold rounded-xl text-sm border border-indigo-100 shadow-sm flex items-center gap-2">🗺️ Hệ thống định vị</span>
+          )}
+          {data.Parking_sensors && (
+            <span className="px-4 py-2.5 bg-emerald-50 text-emerald-700 font-bold rounded-xl text-sm border border-emerald-100 shadow-sm flex items-center gap-2">📡 Cảm biến đỗ xe</span>
+          )}
+          
+          {/* HIỂN THỊ TÌNH TRẠNG HAO MÒN / HƯ HỎNG NẾU CÓ */}
+          {data.scratch_severity && data.scratch_severity !== "none" && (
+            <span className="px-4 py-2.5 bg-red-50 text-red-700 font-bold rounded-xl text-sm border border-red-100 shadow-sm flex items-center gap-2">
+              ⚠️ Xước xát: {data.scratch_severity}
+            </span>
+          )}
+          {data.doors_replaced > 0 && (
+            <span className="px-4 py-2.5 bg-orange-50 text-orange-700 font-bold rounded-xl text-sm border border-orange-100 shadow-sm flex items-center gap-2">
+              🚪 Đã thay {data.doors_replaced} cửa
+            </span>
+          )}
+          {data.vehicle_conditions && data.vehicle_conditions.length > 0 && data.vehicle_conditions[0] !== "none" && (
+            <span className="px-4 py-2.5 bg-purple-50 text-purple-700 font-bold rounded-xl text-sm border border-purple-100 shadow-sm flex items-center gap-2">
+              🚨 Lỗi: {Array.isArray(data.vehicle_conditions) ? data.vehicle_conditions.join(", ") : data.vehicle_conditions}
+            </span>
+          )}
+        </div>
+      </div>
+      {/* ======================================================== */}
+
+      {/* 👑 BẢNG PHÂN TÍCH CHUYÊN SÂU - CHỈ DÀNH CHO VIP */}
       {user?.tier === 'vip' && (
         <div className="mb-8 p-6 bg-gradient-to-br from-yellow-50 to-amber-50 border border-yellow-200 rounded-3xl relative overflow-hidden">
           <div className="absolute top-0 right-0 p-4 opacity-10 text-6xl">👑</div>
