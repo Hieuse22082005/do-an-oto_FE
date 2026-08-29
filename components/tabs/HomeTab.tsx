@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, PieChart, Pie, Tooltip } from 'recharts';
+import CloudHero from '@/components/CloudHero'; // Đã import CloudHero
 
 const COLORS = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#64748b'];
 
@@ -63,25 +64,20 @@ export default function HomeTab({ onTryNow }: { onTryNow: () => void }) {
 
         if (data.status === "ok") {
           const formattedNews = data.items.slice(0, 6).map((item: any) => {
-            // ==========================================
             // NÂNG CẤP MÁY QUÉT ẢNH SIÊU MẠNH (REGEX MỚI)
-            // ==========================================
             let imageUrl = item.thumbnail || (item.enclosure && item.enclosure.link);
             
             if (!imageUrl && item.description) {
-              // Bắt mọi định dạng link ảnh (jpg, png, jpeg, webp) nằm trong thẻ src='...' hoặc src="..."
               const imgMatch = item.description.match(/src=["']([^"']+(?:jpg|jpeg|png|gif|webp))["']/i);
               if (imgMatch && imgMatch[1]) {
                 imageUrl = imgMatch[1];
               }
             }
 
-            // Nếu quét nát bài báo mà vẫn không có ảnh, lúc này mới đành dùng ảnh xe dự phòng
             if (!imageUrl) {
                imageUrl = "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=600&h=400&fit=crop";
             }
 
-            // Xóa sạch rác HTML để lấy text mô tả thuần túy
             const cleanSnippet = item.description.replace(/<[^>]+>/g, '').trim();
 
             return {
@@ -119,13 +115,21 @@ export default function HomeTab({ onTryNow }: { onTryNow: () => void }) {
   ];
 
   return (
-    <div className="w-[100vw] relative left-1/2 -translate-x-1/2 bg-[#f4f5f7] font-sans pb-20">
+    // Xóa pb-20 ở div cha cùng để CloudHero tràn lên mép trên nếu cần, hoặc giữ nguyên tùy ý bạn
+    <div className="w-[100vw] relative left-1/2 -translate-x-1/2 bg-[#f4f5f7] font-sans pb-20 overflow-x-hidden">
       
+      {/* 3. NHÚNG CLOUDHERO VÀO NGAY ĐẦU TRANG */}
+      {/* Thẻ này sẽ chiếm toàn bộ width màn hình và hiện animation mây trôi */}
+      <CloudHero />
+
+      {/* Lớp nền gradient xanh bên dưới CloudHero */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-gradient-to-b from-blue-100/50 to-transparent pointer-events-none -z-10"></div>
       
-      <div className="max-w-[1350px] mx-auto px-4 lg:px-8 pt-12 pb-16">
-        <h1 className="text-center text-4xl md:text-6xl font-black text-gray-900 tracking-tighter uppercase mb-12 drop-shadow-sm">
-          PREDICTCAR
+      <div className="max-w-[1350px] mx-auto px-4 lg:px-8 pt-16 pb-16">
+        
+        {/* Tiêu đề cũ bị bỏ đi hoặc giữ lại tuỳ bạn, ở đây mình giữ lại nhưng thêm pt-8 để cách CloudHero ra */}
+        <h1 className="text-center text-4xl md:text-6xl font-black text-gray-900 tracking-tighter uppercase mb-12 drop-shadow-sm pt-4">
+          PREDICTCAR STATS
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

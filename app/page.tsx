@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { ethers } from "ethers"; 
-import { useRouter } from "next/navigation"; // Công cụ chuyển trang của Next.js
+import { useRouter } from "next/navigation"; 
 
 import Header from "@/components/Header";
 import HomeTab from "@/components/tabs/HomeTab";
@@ -11,12 +11,11 @@ import FinesTab from '@/components/tabs/FinesTab';
 import PenaltyTab from '@/components/tabs/PenaltyTab';
 import AdminTab from "@/components/tabs/AdminTab";
 import { supabase } from '../supabaseClient'; 
+import ChatBox from '@/components/ChatBox';
 
 export default function Home() {
   const router = useRouter(); 
   const [user, setUser] = useState<any>(null);
-  
-  // ĐÃ XÓA HOÀN TOÀN BIẾN showAuthModal 
   
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
@@ -37,6 +36,7 @@ export default function Home() {
       });
     }
   }, []);
+  
 
   const handleLogout = async () => {
     if (user) {
@@ -140,7 +140,6 @@ export default function Home() {
     }
   };
 
-  // NẾU CHƯA ĐĂNG NHẬP SẼ BỊ ĐÁ SANG /LOGIN, KHÔNG HIỆN POPUP NỮA
   const handleTabChange = (tab: string) => {
     if (tab === "home") {
       setActiveTab(tab);
@@ -165,9 +164,6 @@ export default function Home() {
         </button>
       )}
 
-      {/* ĐÃ XÓA HOÀN TOÀN THẺ <AuthModal /> Ở ĐÂY */}
-
-      {/* BẢNG GIÁ VIP GIỮ NGUYÊN */}
       {showPricingModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/80 backdrop-blur-sm animate-[fadeIn_0.3s_ease-out]">
           <div className="bg-white rounded-[2rem] shadow-2xl max-w-4xl w-full overflow-hidden border border-gray-100 relative">
@@ -217,7 +213,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* HEADER ĐÃ SỬA: onLoginClick sẽ trỏ thẳng tới /login */}
       <Header 
         user={user} 
         activeTab={activeTab} 
@@ -258,6 +253,9 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* COMPONENT CHATBOX ĐƯỢC CHÈN VÀO ĐÂY ĐỂ LUÔN NỔI LÊN MỌI TAB */}
+      <ChatBox />
     </div>
   );
 }
