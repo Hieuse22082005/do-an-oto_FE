@@ -109,14 +109,14 @@ export default function Header({ user, activeTab, onTabChange, onLoginClick, onL
           {/* LOGO */}
           <button
             onClick={() => onTabChange("home")}
-            className="flex items-center gap-3 group"
+            className="flex items-center gap-3 group shrink-0"
           >
             <img
               src="/images/logo.png"
               alt="Logo"
               className="w-10 h-10 object-contain transition-all duration-300 group-hover:drop-shadow-[0_0_10px_rgba(0,242,254,0.9)]"
             />
-            <span className="text-2xl font-black uppercase tracking-tighter hidden lg:block transition-colors duration-300 text-[#00f2fe] drop-shadow-[0_0_2px_rgba(0,242,254,0.3)]">
+            <span className="text-2xl font-black uppercase tracking-tighter hidden xl:block transition-colors duration-300 text-[#00f2fe] drop-shadow-[0_0_2px_rgba(0,242,254,0.3)]">
               SmartCar
             </span>
           </button>
@@ -180,7 +180,7 @@ export default function Header({ user, activeTab, onTabChange, onLoginClick, onL
           </nav>
 
           {/* USER ACTIONS */}
-          <div className="flex items-center gap-4 text-xs font-mono uppercase tracking-widest whitespace-nowrap">
+          <div className="flex items-center gap-4 text-xs font-mono uppercase tracking-widest whitespace-nowrap shrink-0">
             <ThemeToggle />
             {user ? (
               <div className="flex items-center gap-3">
