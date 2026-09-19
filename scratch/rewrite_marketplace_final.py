@@ -1,16 +1,20 @@
-'use client';
+import codecs
+
+file_path = 'components/tabs/MarketplaceTab.tsx'
+
+content = """'use client';
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, ChevronLeft, Loader2, CheckCircle2, ShieldCheck, Clock, CreditCard, Star, MessageSquareQuote, Check } from 'lucide-react';
-import CarDetailModal from '../modals/CarDetailModal';
+import { CarDetailModal } from '../modals/CarDetailModal';
 
 // Animation variants for scroll reveal
-const fadeUpVariant: any = {
+const fadeUpVariant = {
   hidden: { opacity: 0, y: 50 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
 };
 
-const staggerContainer: any = {
+const staggerContainer = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -64,7 +68,7 @@ const mockListings = [
 
 const categories = ['Tất cả', 'Xe sang', 'Xe gia đình', 'SUV & Crossover', 'Thể thao'];
 
-export default function MarketplaceTab({ user }: { user?: any }) {
+export default function MarketplaceTab() {
   const [listings, setListings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCar, setSelectedCar] = useState<any | null>(null);
@@ -576,3 +580,9 @@ export default function MarketplaceTab({ user }: { user?: any }) {
     </div>
   );
 }
+"""
+
+with codecs.open(file_path, 'w', 'utf-8') as f:
+    f.write(content)
+
+print("MarketplaceTab fully rewritten with new UI and animations!")
