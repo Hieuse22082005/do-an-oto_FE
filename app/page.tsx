@@ -21,7 +21,12 @@ export default function Home() {
   
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-  const [activeTab, setActiveTab] = useState("home"); 
+    const [activeTab, setActiveTab] = useState("home"); 
+
+  // Cuộn lên đầu trang mỗi khi chuyển tab
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [activeTab]); 
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
