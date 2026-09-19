@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Settings, Gauge, Users, Heart, ArrowRight, ChevronLeft, Loader2, CheckCircle2, ShieldCheck, Clock, CreditCard, Star, MessageSquareQuote, Check } from 'lucide-react';
 import CarDetailModal from '../modals/CarDetailModal';
+import TestimonialsSection from '../sections/TestimonialsSection';
 
 // Animation variants for scroll reveal
 const fadeUpVariant: any = {
@@ -501,54 +502,9 @@ export default function MarketplaceTab({ user }: { user?: any }) {
           </div>
         </div>
 
-        {/* Testimonial */}
-        <div className="w-full bg-slate-50 py-24 px-6 relative -mt-10">
-          <div className="max-w-4xl mx-auto mt-10">
-            <motion.div 
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={fadeUpVariant}
-              className="text-center mb-12"
-            >
-              <div className="flex items-center justify-center gap-4 mb-4">
-                <div className="h-[1px] w-12 bg-blue-900"></div>
-                <span className="text-blue-900 font-bold uppercase tracking-wider text-sm">Đánh giá thực tế</span>
-              </div>
-              <h2 className="text-3xl md:text-4xl font-serif text-slate-800">Khách hàng nói gì?</h2>
-            </motion.div>
-
-            <motion.div 
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="bg-white p-10 md:p-14 rounded-2xl shadow-xl shadow-slate-200 border border-slate-100 relative"
-            >
-              <MessageSquareQuote className="absolute top-10 right-10 w-16 h-16 text-slate-100" />
-              
-              <div className="flex gap-1 text-amber-400 mb-6 relative z-10">
-                <Star fill="currentColor" />
-                <Star fill="currentColor" />
-                <Star fill="currentColor" />
-                <Star fill="currentColor" />
-                <Star fill="currentColor" />
-              </div>
-              
-              <p className="text-xl md:text-2xl text-slate-700 leading-relaxed font-serif italic mb-10 relative z-10">
-                "Tôi đã mua chiếc Mercedes E300 tại đây và thực sự bị ấn tượng bởi sự minh bạch trong toàn bộ quá trình. Báo cáo kiểm định 160 điểm rất chi tiết, không có bất kỳ thông tin nào bị che giấu."
-              </p>
-              
-              <div className="flex items-center gap-4 relative z-10">
-                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?fit=crop&w=150&h=150" alt="Customer" className="w-14 h-14 rounded-full object-cover" />
-                <div>
-                  <h4 className="font-bold text-slate-800">Nguyễn Minh Tuấn</h4>
-                  <p className="text-xs text-slate-500">Giám đốc doanh nghiệp · TP. Hồ Chí Minh</p>
-                  <p className="text-xs font-semibold text-blue-900 mt-1">Mercedes E300 AMG 2022</p>
-                </div>
-              </div>
-            </motion.div>
-          </div>
+        {/* Testimonials Animation */}
+        <div className="w-full bg-slate-50 relative -mt-10 pt-10">
+          <TestimonialsSection />
         </div>
       </section>
 
