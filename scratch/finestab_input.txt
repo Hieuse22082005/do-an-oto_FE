@@ -1,0 +1,80 @@
+          <button className="bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-yellow-950 px-6 py-3 rounded-xl font-bold transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg active:scale-95 active:translate-y-0">N├óng cß║Ñp ngay</button>
+        </div>
+      );
+      
+      return (
+        <div key={activeMenu} className="lg:col-span-6 bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-gray-100 min-h-[500px] flex flex-col relative animate-[fadeIn_0.4s_ease-out]">
+          {!quizState.started ? (
+            <div className="text-center my-auto space-y-4">
+              <span className="text-6xl block mb-4">≡ƒô¥</span>
+              <h2 className="text-2xl font-black text-gray-900">Thi Thß╗¡ L├╜ Thuyß║┐t GPLX (B2)</h2>
+              <p className="text-sm text-gray-500 max-w-sm mx-auto leading-relaxed">Bß╗Ö ─æß╗ü 30 c├óu hß╗Åi ngß║½u nhi├¬n chuß║⌐n Bß╗Ö GTVT. C├│ chß║Ñm ─æiß╗âm trß╗▒c tiß║┐p tß╗½ng c├óu. <br/><strong className="text-red-500">Sai 1 c├óu ─æiß╗âm liß╗çt = Tr╞░ß╗út!</strong></p>
+              <button onClick={() => setQuizState({ ...quizState, started: true })} className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-3 rounded-xl text-sm transition-all duration-300 ease-out mt-4 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/30 active:scale-95 active:translate-y-0">Bß║«T ─Éß║ªU THI</button>
+            </div>
+          ) : quizState.finished ? (
+            <div className="text-center my-auto space-y-4 animate-[fadeInUp_0.4s_ease-out]">
+              <div className="text-6xl">{quizState.hasFailedFatal ? 'Γ¥î' : (quizState.score >= 26 ? '≡ƒÅå' : '≡ƒÿÑ')}</div>
+              <h2 className={`text-2xl font-black ${quizState.hasFailedFatal ? 'text-red-600' : (quizState.score >= 26 ? 'text-emerald-600' : 'text-amber-600')}`}>
+                {quizState.hasFailedFatal ? 'Bß║áN ─É├â TR╞»ß╗óT (SAI C├éU ─ÉIß╗éM LIß╗åT)' : (quizState.score >= 26 ? 'CH├ÜC Mß╗¬NG Bß║áN ─É├â ─Éß╗û' : 'Bß║áN ─É├â TR╞»ß╗óT')}
+              </h2>
+              <p className="text-4xl font-black text-gray-900 my-4">{quizState.score} <span className="text-lg text-gray-400">/ 30</span></p>
+              <p className="text-sm text-gray-500">─Éiß╗üu kiß╗çn: ─Éß║ít 26/30 v├á kh├┤ng sai c├óu ─æiß╗âm liß╗çt.</p>
+              <button onClick={() => setQuizState({ started: false, currentQ: 0, score: 0, finished: false, hasFailedFatal: false, selectedOption: null, isAnswered: false })} className="bg-gray-200 text-gray-800 font-bold px-6 py-2 rounded-lg text-sm transition-all duration-300 ease-out hover:bg-gray-300 active:scale-95">Thi Lß║íi</button>
+            </div>
+          ) : (
+            <div className="flex-1 flex flex-col">
+              <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
+                <span className="font-bold text-gray-500 text-xs bg-gray-100 px-3 py-1 rounded-md">C├óu {quizState.currentQ + 1}/30</span>
+                {QUIZ_QUESTIONS[quizState.currentQ].isFatal && <span className="text-[10px] font-black text-red-600 bg-red-100 px-2 py-1 rounded-sm animate-pulse">ΓÜá∩╕Å C├éU ─ÉIß╗éM LIß╗åT</span>}
+              </div>
+              <h3 className="text-base font-bold text-gray-900 mb-6 leading-relaxed">{QUIZ_QUESTIONS[quizState.currentQ].text}</h3>
+              <div className="space-y-3 mb-auto">
+                {QUIZ_QUESTIONS[quizState.currentQ].options.map((opt, idx) => {
+                  let btnStyle = 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/50';
+                  let icon = <span className="w-6 h-6 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center text-xs font-bold shrink-0">{idx + 1}</span>;
+                  
+                  if (quizState.isAnswered) {
+                    const isCorrect = idx === QUIZ_QUESTIONS[quizState.currentQ].correct;
+                    const isSelected = idx === quizState.selectedOption;
+                    if (isCorrect) {
+                      btnStyle = 'border-emerald-500 bg-emerald-50 text-emerald-900 ring-2 ring-emerald-500/20';
+                      icon = <span className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0">Γ£ô</span>;
+                    } else if (isSelected) {
+                      btnStyle = 'border-red-500 bg-red-50 text-red-900';
+                      icon = <span className="w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-xs font-bold shrink-0">Γ£ò</span>;
+                    }
+                  } else if (idx === quizState.selectedOption) {
+                    btnStyle = 'border-blue-500 bg-blue-50 text-blue-900';
+                  }
+
+                  return (
+                    <button key={idx} onClick={() => handleAnswerSelect(idx)} disabled={quizState.isAnswered} className={`w-full text-left p-3 rounded-xl border-2 transition-all duration-200 ease-out font-medium text-sm flex items-center gap-3 ${quizState.isAnswered ? '' : 'active:scale-[0.98]'} ${btnStyle}`}>
+                      {icon} <span className="flex-1">{opt}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {quizState.isAnswered && (
+                <div className="mt-6 border-t border-gray-100 pt-4 flex justify-end">
+                  <button onClick={handleNextQuestion} className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-lg text-sm transition-all duration-300 ease-out shadow-md hover:shadow-lg active:scale-95 flex items-center gap-2">
+                    {quizState.currentQ === 29 ? 'Kß║┐t Th├║c B├ái Thi' : 'C├óu Tiß║┐p Theo Γ₧ö'}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    if (isLocked) return (
+      <div key={activeMenu} className="lg:col-span-6 bg-slate-900 rounded-3xl p-10 flex flex-col items-center justify-center min-h-[400px] border border-slate-800 shadow-xl animate-[fadeIn_0.4s_ease-out]">
+        <span className="text-6xl mb-4">≡ƒöÆ</span>
+        <h3 className="text-xl font-black text-white mb-2">T├¡nh n─âng VIP</h3>
+        <p className="text-gray-400 text-sm mb-6 text-center">Truy cß║¡p CSDL Quß╗æc Gia y├¬u cß║ºu quyß╗ün Dealer.</p>
+        <button className="bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-yellow-950 px-6 py-3 rounded-xl font-bold text-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg active:scale-95 active:translate-y-0">N├óng cß║Ñp (0.05 ETH)</button>
+      </div>
+    );
+
+    return (
+      <div key={activeMenu} className="lg:col-span-6 space-y-6 animate-[fadeIn_0.4s_ease-out]">

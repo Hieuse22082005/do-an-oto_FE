@@ -1,0 +1,15 @@
+mainTabs = [
+    { id: "home", label: "Trang Chủ" },
+    { id: "analytics", label: "Báo Chí & Thống Kê" },
+    { id: "evaluate", label: "Định Giá SmartCar" },
+  ];
+
+  const dropdownTabs = [
+    { id: "fines", label: "Dịch vụ Pháp lý (Phạt nguội)" },
+    { id: "penalty", label: "Cẩm nang Luật giao thông" },
+    { id: "search", label: "Tra cứu Lịch sử Blockchain" },
+  ];
+
+  if (user?.role === "admin") dropdownTabs.push({ id: "admin", label: "Bảng Quản trị viên" });
+
+  const isDropdownActive = drop

@@ -1,0 +1,14 @@
+let statTitle = "Hệ thống Dữ Liệu"; let statNum = "8,492,105"; let statDesc = "Biên bản đã đồng bộ"; let statColor = "text-blue-700 dark:text-blue-400"; let statBg="bg-blue-100/20 dark:bg-blue-900/20"; let statBorder="border-blue-500/20"; let dotColor="bg-blue-500";
+    let listTitle = "Top Lỗi Phổ Biến"; let listItems = [{ n: "Quá tốc độ", v: "45%", c: "bg-red-500" }, { n: "Vượt đèn đỏ", v: "30%", c: "bg-orange-500" }, { n: "Đỗ sai quy định", v: "15%", c: "bg-blue-500" }];
+    let warnIcon = "⚠️"; let warnTitle = "Cảnh báo Lừa Đảo"; let warnDesc = "Tuyệt đối không truy cập link lạ gửi qua SMS yêu cầu nộp phạt nguội."; let warnBg = "bg-amber-900/20"; let warnBorder = "border-amber-500/20"; let warnText = "text-amber-300";
+    
+    if (activeMenu === 'dang-kiem') {
+      statTitle = "Trung Tâm Đăng Kiểm"; statNum = "125"; statDesc = "Trạm hoạt động trên toàn quốc"; statColor = "text-emerald-700 dark:text-emerald-400"; statBg="bg-emerald-900/20"; statBorder="border-emerald-500/20"; dotColor="bg-emerald-500";
+      listTitle = "Top Lỗi Trượt ĐK"; listItems = [{ n: "Độ đèn sai chuẩn", v: "55%", c: "bg-emerald-500" }, { n: "Lốp sai kích cỡ", v: "25%", c: "bg-teal-400" }, { n: "Khí thải quá mức", v: "15%", c: "bg-cyan-400" }];
+      warnIcon = "🔧"; warnTitle = "Lưu Ý Độ Xe"; warnDesc = "Cục Đăng Kiểm nghiêm cấm thay đổi kết cấu xe. Các xe độ cản, mâm, đèn không đúng chuẩn sẽ bị từ chối cấp tem."; warnBg = "bg-slate-100/50 dark:bg-slate-800/50"; warnBorder = "border-slate-700"; warnText = "text-slate-700 dark:text-slate-300";
+    } else if (activeMenu === 'mat-cap') {
+      statTitle = "CSDL An Ninh"; statNum = "12,050"; statDesc = "Xe tang vật được phát hiện"; statColor = "text-red-500"; statBg="bg-red-900/20"; statBorder="border-red-500/30"; dotColor="bg-red-500";
+      listTitle = "Rủi Ro Mua Xe Cũ"; listItems = [{ n: "Đục lại số khung", v: "60%", c: "bg-red-500" }, { n: "Xe đang thế chấp", v: "30%", c: "bg-amber-500" }, { n: "Biển số giả mạo", v: "10%", c: "bg-orange-500" }];
+      warnIcon = "🚨"; warnTitle = "Rủi Ro Pháp Lý"; warnDesc = "Tiêu thụ tài sản do người khác phạm tội mà có (mua xe gian) có thể bị truy cứu trách nhiệm hình sự."; warnBg = "bg-red-900/40"; warnBorder = "border-red-500/40"; warnText = "text-red-200";
+    } else if (activeMenu === 'gplx') {
+      statTitle = "Quản lý GPLX"; statNum = "1.2M+"; statDesc = "Lượt tra cứu thông qua"; statColor = "text-slate-200"; statBg="bg-slate-100/50 dark:bg-slate-800/50"; statBorder="border-

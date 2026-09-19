@@ -1,0 +1,9 @@
+Top Lỗi Phổ Biến"; let listItems = [{ n: "Quá tốc độ", v: "45%", c: "bg-red-500" }, { n: "Vượt đèn đỏ", v: "30%", c: "bg-orange-500" }, { n: "Đỗ sai quy định", v: "15%", c: "bg-blue-500" }];
+    let warnIcon = "⚠️"; let warnTitle = "Cảnh báo Lừa Đảo"; let warnDesc = "Tuyệt đối không truy cập link lạ gửi qua SMS yêu cầu nộp phạt nguội."; let warnBg = "bg-amber-50/80 dark:bg-amber-900/20"; let warnBorder = "border-amber-200 dark:border-amber-500/20"; let warnText = "text-amber-700 dark:text-amber-400";
+    
+    if (activeMenu === 'dang-kiem') {
+      statTitle = "Trung Tâm Đăng Kiểm"; statNum = "125"; statDesc = "Trạm hoạt động trên toàn quốc"; statColor = "text-emerald-700 dark:text-emerald-400"; statBg="bg-emerald-50/80 dark:bg-emerald-900/20"; statBorder="border-emerald-200 dark:border-emerald-500/20"; dotColor="bg-emerald-500";
+      listTitle = "Top Lỗi Trượt ĐK"; listItems = [{ n: "Độ đèn sai chuẩn", v: "55%", c: "bg-emerald-500" }, { n: "Lốp sai kích cỡ", v: "25%", c: "bg-teal-400" }, { n: "Khí thải quá mức", v: "15%", c: "bg-cyan-400" }];
+      warnIcon = "🔧"; warnTitle = "Lưu Ý Độ Xe"; warnDesc = "Cục Đăng Kiểm nghiêm cấm thay đổi kết cấu xe. Các xe độ cản, mâm, đèn không đúng chuẩn sẽ bị từ chối cấp tem."; warnBg = "bg-slate-50/80 dark:bg-slate-800/50"; warnBorder = "border-slate-200 dark:border-slate-700"; warnText = "text-slate-700 dark:text-slate-300";
+    } else if (activeMenu === 'mat-cap') {
+      statTitle = "CSDL An Ninh"; statNum = "12,050"; statDesc = "Xe ta

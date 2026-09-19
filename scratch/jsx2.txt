@@ -1,0 +1,9 @@
+dow-md group-hover:scale-105 origin-left`}>{statNum}</p>
+        </div>
+
+        <div className="flex-[1.5] flex flex-col justify-center bg-black/40 backdrop-blur-2xl p-6 rounded-[2rem] shadow-[0_8px_32px_rgba(0,0,0,0.4)] border border-white/10 transition-all duration-300 hover:scale-[1.03] hover:-translate-x-1 hover:shadow-lg cursor-default group">
+          <h3 className="font-bold text-white text-xs mb-5 uppercase tracking-wider">{listTitle}</h3>
+          <ul className="space-y-4">
+            {listItems.map((li, i) => (
+              <li key={i} className="flex justify-between items-center text-sm group cursor-default">
+                <div className="flex items-center gap-3"><div className={`w-2.5 h-2.5 ${li.c} rounded-full shadow-[0_0_5px_currentColor] transition-transform duration-300 group-hover:scale-150`}></div><span className="font-bold text-slate-700 dark:text-slate-

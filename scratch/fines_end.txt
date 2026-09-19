@@ -1,0 +1,40 @@
+          </div>
+        ) : (
+          <div className="bg-white dark:bg-[#1e293b]/80 backdrop-blur-xl p-6 rounded-xl shadow-xl border border-slate-700 relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform duration-300 ease-out active:scale-95 text-center">
+            <div className="absolute -right-2 -top-2 text-6xl opacity-5 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-12 text-white">💼</div>
+            <h3 className="font-bold text-white text-base mb-2 relative z-10 transition-colors duration-300 group-hover:text-yellow-700 dark:text-yellow-400">Giải Pháp Đại Lý</h3>
+            <p className="text-xs text-slate-400 mb-0 relative z-10 font-medium">Nâng cấp VIP tra cứu tự động hàng loạt bằng Excel.</p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="w-full h-screen font-sans -mt-24 pt-24 flex flex-col">
+      {/* FULL SCREEN LAYOUT */}
+      <div className="flex flex-col md:flex-row bg-gray-100 dark:bg-neutral-800 w-full flex-1 overflow-hidden">
+        {renderLeftMenu()}
+        <div className="flex flex-1">
+          <div className="p-4 md:p-10 rounded-tl-2xl border-t border-l border-neutral-200 dark:border-neutral-700 bg-white dark:bg-[#0a0f1c] flex flex-col lg:flex-row gap-6 flex-1 w-full h-full overflow-y-auto">
+            {renderCenterMain()}
+            {renderRightWidgets()}
+          </div>
+        </div>
+        </div>
+      </div>
+
+      {qrModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-100/80 dark:bg-gray-900/80 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl shadow-xl w-full max-w-sm p-6 text-center relative animate-[fadeInUp_0.3s_ease-out]">
+            <button onClick={() => setQrModal(null)} className="absolute top-4 right-4 bg-gray-100 rounded-full w-8 h-8 font-bold text-gray-500 transition-all duration-300 ease-out hover:bg-gray-200 hover:text-gray-900 hover:rotate-90 active:scale-95">✕</button>
+            <h3 className="text-lg font-bold text-blue-900 mb-1">Thanh Toán VietQR</h3>
+            <p className="text-xs text-gray-500 mb-4">Mở app Ngân hàng để quét mã</p>
+            <img src={`https://img.vietqr.io/image/MB-0987654321-compact2.png?amount=${qrModal.fineAmount}&addInfo=NopPhatNguoi`} alt="QR Code" className="w-48 h-48 mx-auto mb-4 border-2 border-dashed border-blue-200 p-2 rounded-xl transition-transform duration-500 hover:scale-105" />
+            <button onClick={() => setQrModal(null)} className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl text-sm transition-all duration-300 ease-out shadow-md hover:bg-blue-700 hover:shadow-lg hover:-translate-y-1 active:scale-95 active:translate-y-0">Đóng</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

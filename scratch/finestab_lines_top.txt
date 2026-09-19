@@ -1,0 +1,30 @@
+200:     const animationClass = "";
+201:       if (isLocked) return (
+202:         <div key={activeMenu} className={`lg:col-span-6 bg-black/40 backdrop-blur-2xl rounded-[2rem] p-10 flex flex-col items-center justify-center min-h-[500px] border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)] relative overflow-hidden ${animationClass}`}>
+203: 
+204:         <div className="text-center mb-10 relative">
+205: 
+206:           <div className="flex justify-center items-center gap-2 mb-4 relative z-10">
+207:             <div className="flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 px-4 py-1.5 rounded-full backdrop-blur-md shadow-sm">
+208:               <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wide text-blue-700 dark:text-blue-300">🔒 YÊU CẦU NÂNG CẤP VIP</span>
+209:             </div>
+210:           </div>
+211:           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight mb-4 drop-shadow-sm py-1 relative z-10">
+212:             Khóa Chức Năng
+213:           </h1>
+214:           <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base relative z-10">
+215:             Xin chào <span className="font-bold bg-slate-100/50 dark:bg-slate-800/50 text-slate-800 dark:text-gray-200 px-3 py-1 rounded-full border border-black/10 dark:border-white/10 ml-1">{user?.user_metadata?.display_name || user?.email || 'Khách'}</span>
+216:           </p>
+217:         </div>
+218: 
+219: 
+220:           <span className="text-6xl mb-4 relative z-10 drop-shadow-lg">👑</span>
+221:           <h3 className="text-3xl font-bold text-yellow-500 mb-2 relative z-10">Tính Năng VIP</h3>
+222:           <p className="text-slate-700 dark:text-slate-300 text-sm mb-8 text-center max-w-sm relative z-10">Tính năng này dành riêng cho tài khoản VIP. Vui lòng nâng cấp tài khoản để sử dụng không giới hạn tất cả các tính năng cao cấp.</p>
+223:           <button className="relative z-10 bg-yellow-500 hover:bg-yellow-600 text-slate-900 px-6 py-2 rounded-xl font-bold tracking-wider shadow-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-md active:scale-95">Nâng cấp ngay</button>
+224:         </div>
+225: 
+226:     // THI THỬ (Gamified - VIP)
+227:     if (activeMenu === 'thi-thu') {
+228:       );
+229: 

@@ -1,0 +1,30 @@
+      <div className="lg:col-span-3 h-full">
+        <div className="bg-slate-200/80 dark:bg-black/40 backdrop-blur-2xl p-4 rounded-[2rem] shadow-[0_8px_32px_rgba(0,0,0,0.4)] border border-black/10 dark:border-white/10 h-full flex flex-col">
+        <h3 className="text-slate-900 dark:text-white font-bold text-[11px] uppercase tracking-wider mb-4 px-2 flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span> Dß╗èCH Vß╗ñ PH├üP L├¥
+        </h3>
+        <div className="flex flex-col gap-3 flex-1">
+            {menuItems.map((item) => (
+              <button key={item.id} onClick={() => { setActiveMenu(item.id); setResults({ fines: null, registry: null, stolen: null, license: null }); }}
+                className={`w-full flex-1 flex items-center gap-4 px-4 py-2.5 rounded-[1.5rem] font-bold text-left transition-all duration-300 relative overflow-hidden group active:scale-95 ${activeMenu === item.id ? `${item.bg} text-white shadow-sm scale-[1.02] translate-x-2` : 'bg-transparent text-slate-600 dark:text-gray-400 hover:bg-slate-300 dark:hover:bg-gray-800/80 hover:text-slate-900 dark:hover:text-white hover:translate-x-3 hover:shadow-lg'}`}
+              >
+                {/* Glow effect on hover */}
+                <div className={`absolute inset-0 bg-gradient-to-r from-white/0 via-white/5 to-white/0 translate-x-[-100%] group-hover:animate-[shimmer_1.5s_infinite] ${activeMenu === item.id ? 'hidden' : 'block'}`}></div>
+                
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl transition-all duration-500 ease-out shadow-inner ${activeMenu === item.id ? 'bg-black/30 scale-110 shadow-black/50' : 'bg-white dark:bg-gray-800/80 text-slate-500 dark:text-gray-400 group-hover:scale-110 group-hover:-rotate-12 group-hover:text-slate-900 dark:group-hover:text-white group-hover:bg-slate-200 dark:group-hover:bg-gray-700'}`}>
+                  {item.icon}
+                </div>
+                
+                <div className="flex-1 transition-transform duration-300 group-hover:translate-x-1">
+                   <span className="block text-sm tracking-normal font-medium">{item.title}</span>
+                   {!item.isFree && <span className={`block text-[9px] font-bold uppercase mt-1.5 tracking-wide transition-colors duration-300 ${activeMenu === item.id ? 'text-yellow-700 dark:text-yellow-300 drop-shadow-[0_0_5px_rgba(253,224,71,0.5)]' : 'text-amber-500/70 group-hover:text-yellow-700 dark:text-yellow-400'}`}>Γÿà D├ánh cho VIP</span>}
+                </div>
+              </button>
+            ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  // ================= LAYOUT 2: Cß╗ÿT GIß╗«A (C├ô KEY ─Éß╗é K├ìCH HOß║áT ANIMATION M╞»ß╗óT M├Ç) =================
+  const renderCenterMain = () => {

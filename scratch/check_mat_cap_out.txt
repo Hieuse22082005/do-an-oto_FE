@@ -1,0 +1,19 @@
+if (activeMenu === 'mat-cap') {
+      return (
+        <div key={activeMenu} className={`lg:col-span-6 flex flex-col gap-6 ${animationClass}`}>
+            <div className="text-center mb-10 relative">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-6xl md:text-[7rem] font-black text-white/[0.03] whitespace-nowrap pointer-events-none select-none tracking-tighter w-full overflow-hidden">
+                TRA CỨU XE MẤT CẮP
+              </div>
+              <div className="flex justify-center items-center gap-2 mb-4 relative z-10">
+                <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 px-4 py-1.5 rounded-full backdrop-blur-md shadow-sm">
+                  <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-red-300">🚨 DỮ LIỆU AN NINH QUỐC GIA</span>
+                </div>
+              </div>
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-rose-400 to-orange-400 tracking-tight mb-4 drop-shadow-sm py-1 relative z-10">
+                Tra Cứu Xe Mất Cắp
+              </h1>
+              <p className="text-gray-400 text-sm sm:text-lg relative z-10">
+                Xin chào <span className="font-bold bg-white/5 text-gray-200 px-3 py-1 rounded-full border border-white/10 ml-1">{user?.user_metadata?.display_name || user?.email || 'Khách'}</span>
+              </p>
+            </

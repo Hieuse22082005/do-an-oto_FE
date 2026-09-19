@@ -1,0 +1,19 @@
+border-blue-500 outline-none uppercase tracking-widest transition-all" required/>
+              </div>
+              <button type="submit" disabled={isLoading === 'phat-nguoi'} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-bold text-sm uppercase transition-all duration-300 ease-out shadow-md hover:shadow-lg active:scale-95 disabled:opacity-70">
+                {isLoading ? 'Đang kết nối...' : 'Tra Cứu'}
+              </button>
+            </form>
+          </div>
+
+          {!hasResult ? (
+            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl border border-black/10 dark:border-white/10 shadow-xl flex items-start gap-4">
+              <div className="w-12 h-12 bg-blue-100/50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400 rounded-2xl flex items-center justify-center shrink-0 text-2xl font-bold">?</div>
+              <div>
+                <h3 className="font-bold text-slate-900 dark:text-white text-base mb-1">Tra Cứu Phạt Nguội Là Gì?</h3>
+                <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Hình thức xử phạt vi phạm giao thông qua hệ thống camera giám sát. Hình ảnh được gửi về Trung tâm đối chiếu và gửi giấy báo về nhà chủ phương tiện. Tránh bị từ chối đăng kiểm hoặc vướng mắc khi sang tên đổi chủ.</p>
+              </div>
+            </div>
+          ) : (
+            <div className="animate-[fadeInUp_0.4s_ease-out]">
+              {results.fines.length === 0 ? 

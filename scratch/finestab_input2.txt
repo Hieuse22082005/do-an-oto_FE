@@ -1,0 +1,70 @@
+        {/* KHß╗ÉI T├îM KIß║╛M */}
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-black text-gray-900">{contentData.title}</h2>
+            {activeMenu === 'phat-nguoi' && <p className="text-xs text-gray-500 mt-1">Miß╗àn ph├¡ cho mß╗ìi ng╞░ß╗¥i d├╣ng</p>}
+          </div>
+
+          {activeMenu === 'phat-nguoi' && (
+            <form onSubmit={handleSearchFines} className="flex flex-col gap-3">
+              <input type="text" value={queries.plate} onChange={(e) => handleInputChange('plate', e.target.value)} placeholder="Nhß║¡p biß╗ân sß╗æ (Thß╗¡: 30G99999)" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-center text-sm font-bold focus:border-blue-500 uppercase tracking-widest outline-none transition-colors" required/>
+              <button type="submit" disabled={isLoading === 'phat-nguoi'} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold text-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/30 active:scale-95 active:translate-y-0">{isLoading ? '─Éang kß║┐t nß╗æi...' : 'Tra Cß╗⌐u'}</button>
+            </form>
+          )}
+          {activeMenu === 'dang-kiem' && (
+            <form onSubmit={handleSearchRegistry} className="grid grid-cols-2 gap-3">
+              <input type="text" value={queries.plate} onChange={(e) => handleInputChange('plate', e.target.value)} placeholder="Biß╗ân sß╗æ xe" className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-center text-sm font-bold focus:border-indigo-500 uppercase outline-none" required/>
+              <input type="text" value={queries.cert} onChange={(e) => handleInputChange('cert', e.target.value)} placeholder="Sß╗æ Tem/GCN" className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-center text-sm font-bold focus:border-indigo-500 uppercase outline-none" required/>
+              <button type="submit" className="col-span-2 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold text-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/30 active:scale-95 active:translate-y-0">Kiß╗âm Tra Hß╗ô S╞í</button>
+            </form>
+          )}
+          {activeMenu === 'mat-cap' && (
+            <form onSubmit={handleSearchStolen} className="flex flex-col gap-3">
+              <input type="text" value={queries.vin} onChange={(e) => handleInputChange('vin', e.target.value)} placeholder="Sß╗æ Khung / Biß╗ân Sß╗æ" className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-center text-sm font-bold focus:border-red-500 uppercase outline-none" required/>
+              <button type="submit" className="bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold text-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg hover:shadow-red-500/30 active:scale-95 active:translate-y-0">Qu├⌐t Ph├íp L├╜</button>
+            </form>
+          )}
+          {activeMenu === 'gplx' && (
+            <form onSubmit={handleSearchLicense} className="flex flex-col gap-3">
+              <input type="text" value={queries.gplx} onChange={(e) => handleInputChange('gplx', e.target.value)} placeholder="Nhß║¡p 12 sß╗æ GPLX" maxLength={12} className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-center text-sm font-black focus:border-blue-500 tracking-widest outline-none" required/>
+              <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold text-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/30 active:scale-95 active:translate-y-0">X├íc Minh GPLX</button>
+            </form>
+          )}
+        </div>
+
+        {/* TH├öNG TIN Lß║ñP TRß╗ÉNG KHI CH╞»A C├ô Kß║╛T QUß║ó */}
+        {!hasResult && (
+          <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm transition-all duration-500 hover:shadow-md">
+            <h3 className="font-black text-gray-900 text-sm mb-2 uppercase">{contentData.title}</h3>
+            <p className="text-gray-600 text-xs leading-relaxed mb-4">{contentData.def}</p>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">T├íc dß╗Ñng cß╗ºa viß╗çc tra cß╗⌐u:</p>
+            <ul className="space-y-2">
+              {contentData.uses.map((use, i) => (
+                <li key={i} className="text-xs text-gray-700 flex items-start gap-2 bg-emerald-50/50 p-2.5 rounded-lg border border-emerald-100 transition-colors hover:bg-emerald-100/50 hover:border-emerald-200">
+                  <span className="text-emerald-500 font-black">Γ£ô</span> {use}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div className="min-h-[200px]">
+          {activeMenu === 'phat-nguoi' && results.fines !== null && (
+            <div className="animate-[fadeInUp_0.4s_ease-out]">
+              {results.fines.length === 0 ? (
+                <div className="bg-emerald-50 border-2 border-emerald-200 rounded-3xl p-8 text-center"><div className="text-4xl mb-3">Γ£à</div><h3 className="text-xl font-black text-emerald-900">Sß║áCH PHß║áT NGUß╗ÿI!</h3></div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="bg-[#002f6c] rounded-3xl p-6 text-white shadow-xl relative overflow-hidden transition-all duration-500 hover:shadow-2xl">
+                    <div className="relative z-10 flex flex-col sm:flex-row justify-between items-center gap-4">
+                      <div><h3 className="text-sm font-bold text-blue-200 mb-1">≡ƒñû AI Cß║Ñn Trß╗½ ─Éß╗ïnh Gi├í</h3><p className="text-xl font-black text-white">500.000.000 ─æ</p></div>
+                      <div className="text-center"><span className="text-red-400 font-bold text-lg">- 4.000.000 ─æ</span><p className="text-[10px] text-blue-300">Tß╗òng Phß║ít Nguß╗Öi</p></div>
+                      <div className="text-right"><h3 className="text-sm font-bold text-emerald-300 mb-1">Thß╗▒c Thu</h3><p className="text-2xl font-black text-emerald-400">496.000.000 ─æ</p></div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-5 transition-all duration-500 hover:shadow-md hover:border-blue-200">
+                    <div className="flex-1 space-y-3">
+                      <div className="flex justify-between items-center border-b border-gray-100 pb-2">
+                        <span className="font-bold text-gray-900 text-sm">─Éß╗Öi CSGT Sß╗æ 6</span>
+                        <span className="bg-red-50 text-red-600 font-bold text-[10px] px-2 py-1 rounded uppercase">Ch╞░a nß╗Öp phß║ít</span>
