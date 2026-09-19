@@ -11,7 +11,52 @@ interface CarDetailModalProps {
   onBuy: () => Promise<void>;
 }
 
+
+function MagnifierImage({ src, alt }: { src: string; alt: string }) {
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [showMagnifier, setShowMagnifier] = useState(false);
+  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
+
+  return (
+    <div 
+      className="relative w-full h-full cursor-zoom-in overflow-hidden"
+      onMouseEnter={() => setShowMagnifier(true)}
+      onMouseLeave={() => setShowMagnifier(false)}
+      onMouseMove={(e) => {
+        const { top, left, width, height } = e.currentTarget.getBoundingClientRect();
+        const x = ((e.clientX - left) / width) * 100;
+        const y = ((e.clientY - top) / height) * 100;
+        setPosition({ x, y });
+        setCursorPosition({ x: e.clientX - left, y: e.clientY - top });
+      }}
+    >
+      <img src={src} alt={alt} className="w-full h-full object-cover" />
+
+      {showMagnifier && (
+        <div 
+          className="absolute pointer-events-none rounded-full"
+          style={{
+            display: "block",
+            width: "300px",
+            height: "300px",
+            left: `${cursorPosition.x - 150}px`,
+            top: `${cursorPosition.y - 150}px`,
+            backgroundImage: `url('${src}')`,
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "250%", 
+            backgroundPosition: `${position.x}% ${position.y}%`,
+            zIndex: 50,
+            boxShadow: "0 0 0 7px rgba(255,255,255,0.1), 0 0 20px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,0,0,0.5)",
+            backdropFilter: "blur(4px)"
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
 export default function CarDetailModal({ car, onClose, onBuy }: CarDetailModalProps) {
+
   const [buying, setBuying] = useState(false);
   
   // Prevent scrolling when modal is open
@@ -58,13 +103,9 @@ export default function CarDetailModal({ car, onClose, onBuy }: CarDetailModalPr
           <ArrowLeft size={24} />
         </button>
 
-        {/* Left Side: Poster Image */}
-        <div className="w-full md:w-1/2 h-1/2 md:h-full relative bg-black flex items-center justify-center overflow-hidden">
-          <img 
-            src={car.image_url} 
-            alt={car.model} 
-            className="w-full h-full object-cover"
-          />
+        {/* Left Side: Poster Image with Magnifier */}
+        <div className="w-full md:w-1/2 h-1/2 md:h-full relative bg-black flex items-center justify-center overflow-hidden group">
+          <MagnifierImage src={car.image_url} alt={car.model} />
         </div>
 
         {/* Right Side: Details */}
