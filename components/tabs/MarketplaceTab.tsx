@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, ChevronLeft, Loader2, CheckCircle2, ShieldCheck, Clock, CreditCard, Star, MessageSquareQuote, Check } from 'lucide-react';
+import { ChevronRight, Settings, Gauge, Users, Heart, ArrowRight, ChevronLeft, Loader2, CheckCircle2, ShieldCheck, Clock, CreditCard, Star, MessageSquareQuote, Check } from 'lucide-react';
 import CarDetailModal from '../modals/CarDetailModal';
 
 // Animation variants for scroll reveal
@@ -258,32 +258,32 @@ export default function MarketplaceTab({ user }: { user?: any }) {
       </section>
 
       {/* 3. BỘ SƯU TẬP - XE NỔI BẬT */}
-      <section id="collection-section" className="w-full py-20 px-6 md:px-10 lg:px-20 bg-slate-50">
+      <section id="collection-section" className="w-full py-24 px-6 md:px-10 lg:px-20 bg-[#0a0a0a]">
         <div className="max-w-7xl mx-auto relative">
           <motion.div 
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-100px" }}
             variants={fadeUpVariant}
-            className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6"
+            className="flex flex-col mb-12 gap-2"
           >
-            <div>
-              <div className="flex items-center gap-4 mb-2">
-                <div className="h-[1px] w-12 bg-blue-900"></div>
-                <span className="text-blue-900 font-bold uppercase tracking-wider text-sm">Bộ sưu tập</span>
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-amber-500 font-bold uppercase tracking-[0.2em] text-xs mb-4 block">Our Collection</span>
+                <h2 className="text-4xl md:text-5xl font-serif text-white">Featured Luxury Cars</h2>
               </div>
-              <h2 className="text-3xl md:text-4xl font-serif text-slate-800">Xe nổi bật</h2>
+              
+              <button 
+                onClick={() => setShowAllCars(!showAllCars)}
+                className="text-amber-500 hover:text-amber-400 font-bold tracking-widest uppercase text-xs transition-colors flex items-center gap-2"
+              >
+                {showAllCars ? 'Lesser Inventory' : 'View All Inventory'} 
+                <ArrowRight size={14} className={showAllCars ? 'rotate-90 transition-transform' : 'transition-transform'} />
+              </button>
             </div>
-            
-            <button 
-              onClick={() => setShowAllCars(!showAllCars)}
-              className="text-blue-900 font-semibold hover:text-red-600 transition-colors flex items-center gap-1"
-            >
-              {showAllCars ? 'Thu gọn' : 'Xem tất cả'} <ChevronRight size={16} className={showAllCars ? 'rotate-90 transition-transform' : 'transition-transform'} />
-            </button>
           </motion.div>
 
-          {/* Categories Tabs */}
+          {/* Categories Tabs - Dark Mode */}
           <motion.div 
             initial="hidden"
             whileInView="visible"
@@ -296,12 +296,12 @@ export default function MarketplaceTab({ user }: { user?: any }) {
                 key={cat}
                 onClick={() => {
                   setActiveCategory(cat);
-                  setShowAllCars(true); // Tự động mở rộng khi chọn thể loại khác
+                  setShowAllCars(true);
                 }}
-                className={`px-6 py-2 border rounded-sm transition-all font-medium text-sm ${
+                className={`px-6 py-2 border rounded-full transition-all font-medium text-xs tracking-wider uppercase ${
                   activeCategory === cat 
-                    ? 'bg-blue-900 text-white border-blue-900 shadow-md' 
-                    : 'bg-white text-slate-600 border-slate-200 hover:border-blue-900 hover:text-blue-900'
+                    ? 'bg-amber-500 text-black border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.3)]' 
+                    : 'bg-transparent text-white/70 border-white/20 hover:border-amber-500 hover:text-amber-500'
                 }`}
               >
                 {cat}
@@ -311,7 +311,7 @@ export default function MarketplaceTab({ user }: { user?: any }) {
           
           {loading ? (
             <div className="flex justify-center items-center h-64">
-              <Loader2 className="animate-spin w-8 h-8 text-blue-900" />
+              <Loader2 className="animate-spin w-8 h-8 text-amber-500" />
             </div>
           ) : (
             <motion.div 
@@ -319,7 +319,7 @@ export default function MarketplaceTab({ user }: { user?: any }) {
               whileInView="visible"
               viewport={{ once: true, margin: "-100px" }}
               variants={staggerContainer}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
             >
               <AnimatePresence mode='popLayout'>
                 {filteredListings.length === 0 ? (
@@ -327,7 +327,7 @@ export default function MarketplaceTab({ user }: { user?: any }) {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="text-slate-500 italic col-span-full py-10"
+                    className="text-white/50 italic col-span-full py-10"
                   >
                     Không tìm thấy xe nào trong danh mục này.
                   </motion.p>
@@ -337,70 +337,79 @@ export default function MarketplaceTab({ user }: { user?: any }) {
                     return (
                       <motion.div 
                         layout
-                        initial={{ opacity: 0, scale: 0.9 }}
+                        initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
                         transition={{ duration: 0.3 }}
                         key={car.id} 
-                        className="bg-white rounded-lg overflow-hidden border border-slate-200 shadow-sm hover:shadow-xl transition-all group flex flex-col"
+                        className="bg-[#141414] rounded-xl overflow-hidden border border-white/5 hover:border-amber-500/30 transition-all group flex flex-col relative"
                       >
+                        {/* Heart Icon */}
+                        <button className="absolute top-4 left-4 z-20 text-white/50 hover:text-amber-500 transition-colors">
+                          <Heart size={20} strokeWidth={1.5} />
+                        </button>
+
                         {/* Image */}
-                        <div className="w-full aspect-[4/3] bg-slate-100 relative overflow-hidden">
+                        <div className="w-full aspect-[16/10] bg-black relative overflow-hidden">
                           <img 
                             src={car.image_url} 
                             alt={car.model} 
-                            className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${isSold ? 'grayscale opacity-70' : ''}`}
+                            className={`w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 ${isSold ? 'grayscale opacity-50' : 'opacity-90'}`}
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
                               target.src = 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=800&q=80';
                             }}
                           />
-                          {/* Sold Badge Overlay */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-[#141414] via-transparent to-transparent opacity-80 pointer-events-none"></div>
+                          
+                          {/* Sold Badge */}
                           {isSold && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-10">
-                              <div className="px-6 py-2 bg-red-600 text-white font-black text-2xl tracking-widest uppercase -rotate-12 border-4 border-red-600 shadow-2xl">
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-10 backdrop-blur-[2px]">
+                              <div className="px-6 py-2 bg-red-600/90 text-white font-black text-xl tracking-widest uppercase -rotate-12 border border-red-500 shadow-2xl">
                                 Đã Bán
                               </div>
-                            </div>
-                          )}
-                          {!isSold && (
-                            <div className="absolute top-4 left-4 px-3 py-1 bg-white/90 backdrop-blur-sm text-blue-900 text-xs font-bold rounded-sm">
-                              {car.condition || 'XE LƯỚT'}
                             </div>
                           )}
                         </div>
 
                         {/* Info */}
-                        <div className="p-6 flex flex-col flex-grow">
-                          <div className="flex justify-between items-start mb-2">
+                        <div className="p-6 flex flex-col flex-grow relative z-10 -mt-6">
+                          <div className="flex justify-between items-end mb-4">
                             <div>
-                              <p className="text-xs text-slate-500 uppercase font-semibold mb-1">{car.brand}</p>
-                              <h3 className="font-black text-xl text-slate-800 tracking-tight">{car.model}</h3>
+                              <h3 className="font-bold text-xl text-white tracking-wide">{car.brand} {car.model}</h3>
                             </div>
-                            <p className="font-bold text-red-600 text-lg">
+                            <p className="font-bold text-amber-500 text-lg">
                               {formatPrice(car.sell_price)}
                             </p>
                           </div>
                           
-                          <div className="flex items-center gap-4 text-xs text-slate-500 mb-4 border-b border-slate-100 pb-4">
-                            <span className="flex items-center gap-1"><Check size={14}/> Đã kiểm định</span>
-                            <span className="flex items-center gap-1"><Clock size={14}/> {car.manufacture_year}</span>
+                          {/* Specs Row */}
+                          <div className="flex items-center justify-between text-white/60 text-[11px] font-medium uppercase tracking-wider py-4 border-b border-white/10">
+                            <div className="flex items-center gap-2">
+                              <Settings size={14} className="text-amber-500"/>
+                              <span>{car.brand.toLowerCase() === 'porsche' ? 'Flat-6 4.0L' : car.brand.toLowerCase() === 'audi' ? 'Electric' : 'V8 4.0L'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Gauge size={14} className="text-amber-500"/>
+                              <span>{car.brand.toLowerCase() === 'porsche' ? '520 HP' : '600 HP'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Users size={14} className="text-amber-500"/>
+                              <span>4 Seats</span>
+                            </div>
                           </div>
                           
-                          <p className="text-sm text-slate-600 leading-relaxed line-clamp-2 mb-6 flex-grow">
-                            {car.description}
-                          </p>
-
                           <button 
                             onClick={() => !isSold && setSelectedCar(car)}
                             disabled={isSold}
-                            className={`w-full py-3 text-sm font-bold uppercase tracking-wider transition-colors rounded-sm ${
+                            className={`w-full pt-6 text-[10px] font-bold uppercase tracking-[0.2em] transition-colors flex justify-between items-center ${
                               isSold 
-                                ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                                : 'bg-blue-900 text-white hover:bg-red-600'
+                                ? 'text-white/30 cursor-not-allowed'
+                                : 'text-amber-500 hover:text-amber-400 group-hover:text-amber-400'
                             }`}
                           >
-                            {isSold ? 'Đã Hết Hàng' : 'Xem Chi Tiết'}
+                            {isSold ? 'Out of Stock' : 'View Details'}
+                            <ArrowRight size={14} className={isSold ? 'opacity-30' : 'group-hover:translate-x-1 transition-transform'} />
                           </button>
                         </div>
                       </motion.div>
@@ -412,7 +421,6 @@ export default function MarketplaceTab({ user }: { user?: any }) {
           )}
         </div>
       </section>
-
       {/* 4. QUY TRÌNH */}
       <section className="w-full py-20 px-6 md:px-10 lg:px-20 bg-white">
         <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-16 items-center">
