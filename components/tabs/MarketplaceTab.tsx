@@ -1,10 +1,11 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, Settings, Gauge, Users, Heart, ArrowRight, ChevronLeft, Loader2, CheckCircle2, ShieldCheck, Clock, CreditCard, Star, MessageSquareQuote, Check } from 'lucide-react';
+import { ChevronRight, Car, Globe, Settings, Gauge, Users, Heart, ArrowRight, ChevronLeft, Loader2, CheckCircle2, ShieldCheck, Clock, CreditCard, Star, MessageSquareQuote, Check } from 'lucide-react';
 import CarDetailModal from '../modals/CarDetailModal';
 import TestimonialsSection from '../sections/TestimonialsSection';
 import ContactSupportBlock from '../ui/contact-support-block';
+import { InfiniteSlider } from '../ui/infinite-slider';
 
 // Animation variants for scroll reveal
 const fadeUpVariant: any = {
@@ -179,6 +180,84 @@ export default function MarketplaceTab({ user }: { user?: any }) {
         </div>
       </section>
 
+      
+      {/* 1.5 CATEGORIES & COUNTRIES */}
+      <section className="w-full py-16 px-6 md:px-10 bg-slate-50 overflow-hidden">
+        <div className="max-w-7xl mx-auto">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <div className="flex items-center justify-center gap-4 mb-4">
+              <div className="h-[1px] w-12 bg-blue-900"></div>
+              <span className="text-blue-900 font-bold uppercase tracking-wider text-sm">Bộ sưu tập</span>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-serif text-slate-800">Thế Giới Xe Đa Dạng</h2>
+            <p className="mt-4 text-slate-500 max-w-2xl mx-auto">Từ những mẫu Sedan thanh lịch đến SUV mạnh mẽ, quy tụ các thương hiệu danh tiếng nhất toàn cầu.</p>
+          </motion.div>
+
+          <div className="mb-16">
+            <h4 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-2 justify-center">
+              <Car className="text-blue-600" /> Thương hiệu nổi bật
+            </h4>
+            
+            <InfiniteSlider direction="horizontal" speed={25} reverse={true}>
+              {[
+                { name: 'Mercedes', logo: 'https://upload.wikimedia.org/wikipedia/commons/9/90/Mercedes-Logo.svg' },
+                { name: 'BMW', logo: 'https://upload.wikimedia.org/wikipedia/commons/4/44/BMW.svg' },
+                { name: 'Audi', logo: 'https://upload.wikimedia.org/wikipedia/commons/9/92/Audi-Logo_2016.svg' },
+                { name: 'Porsche', logo: 'https://cdn.worldvectorlogo.com/logos/porsche-6.svg' },
+                { name: 'Lexus', logo: 'https://cdn.worldvectorlogo.com/logos/lexus-2.svg' },
+                { name: 'Toyota', logo: 'https://upload.wikimedia.org/wikipedia/commons/9/9d/Toyota_carlogo.svg' },
+                { name: 'Honda', logo: 'https://upload.wikimedia.org/wikipedia/commons/7/7b/Honda_Logo.svg' },
+                { name: 'Ford', logo: 'https://upload.wikimedia.org/wikipedia/commons/a/a0/Ford_Motor_Company_Logo.svg' },
+                { name: 'Hyundai', logo: 'https://upload.wikimedia.org/wikipedia/commons/4/44/Hyundai_Motor_Company_logo.svg' },
+                { name: 'Kia', logo: 'https://upload.wikimedia.org/wikipedia/commons/4/47/KIA_logo2.svg' },
+                { name: 'VinFast', logo: 'https://upload.wikimedia.org/wikipedia/commons/e/e0/Vinfast_logo.svg' },
+              ].map((brand) => (
+                <div 
+                  key={brand.name} 
+                  className="flex flex-col items-center justify-center h-24 w-32 md:w-40 mx-4"
+                >
+                  <img src={brand.logo} alt={brand.name} className="h-16 w-auto object-contain mb-4 opacity-90 drop-shadow-md" />
+                  <h4 className="text-slate-700 font-bold text-sm tracking-wide">{brand.name}</h4>
+                </div>
+              ))}
+            </InfiniteSlider>
+          </div>
+
+          <div>
+            <h4 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-2 justify-center">
+              <Globe className="text-blue-600" /> Quốc gia xuất xứ
+            </h4>
+            
+            <InfiniteSlider direction="horizontal" speed={20} reverse={true}>
+              {[
+                { name: 'Đức', flag: 'https://flagcdn.com/w80/de.png', brands: 'Mercedes, BMW, Audi, Porsche' },
+                { name: 'Nhật Bản', flag: 'https://flagcdn.com/w80/jp.png', brands: 'Toyota, Lexus, Honda, Mazda' },
+                { name: 'Mỹ', flag: 'https://flagcdn.com/w80/us.png', brands: 'Ford, Chevrolet, Tesla, Jeep' },
+                { name: 'Ý', flag: 'https://flagcdn.com/w80/it.png', brands: 'Ferrari, Lamborghini, Maserati' },
+                { name: 'Anh Quốc', flag: 'https://flagcdn.com/w80/gb.png', brands: 'Bentley, Land Rover, Aston Martin' },
+                { name: 'Pháp', flag: 'https://flagcdn.com/w80/fr.png', brands: 'Peugeot, Bugatti, Renault' },
+                { name: 'Hàn Quốc', flag: 'https://flagcdn.com/w80/kr.png', brands: 'Hyundai, Kia, Genesis' },
+                { name: 'Thụy Điển', flag: 'https://flagcdn.com/w80/se.png', brands: 'Volvo, Koenigsegg' },
+                { name: 'Việt Nam', flag: 'https://flagcdn.com/w80/vn.png', brands: 'VinFast' },
+              ].map((country) => (
+                <div 
+                  key={country.name} 
+                  className="flex flex-col items-center justify-center h-24 w-36 md:w-48 mx-4"
+                >
+                  <img src={country.flag} alt={country.name} className="w-14 h-auto shadow-md rounded-sm mb-4" />
+                  <h4 className="text-slate-700 font-bold mb-1 tracking-wide">{country.name}</h4>
+                  <p className="text-slate-400 text-[10px] uppercase font-mono">{country.brands}</p>
+                </div>
+              ))}
+            </InfiniteSlider>
+          </div>
+        </div>
+      </section>
       {/* 2. CAM KẾT CỦA CHÚNG TÔI */}
       <section className="w-full py-20 px-6 md:px-10 lg:px-20 bg-white">
         <div className="max-w-7xl mx-auto">
