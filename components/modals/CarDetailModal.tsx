@@ -90,9 +90,41 @@ export default function CarDetailModal({ car, onClose, onBuy }: CarDetailModalPr
               <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-semibold tracking-wider uppercase border border-white/10">{car.manufacture_year} MODEL</span>
             </div>
 
-            <p className="text-sm tracking-wide text-white/70 leading-relaxed mb-10 max-w-md">
+            <p className="text-sm tracking-wide text-white/70 leading-relaxed mb-6 max-w-md">
               {car.description}
             </p>
+
+            {/* MOCK SPECS */}
+            <div className="grid grid-cols-2 gap-4 mb-8 max-w-md border-t border-white/10 pt-6">
+              <div>
+                <p className="text-[10px] text-white/50 uppercase tracking-widest mb-1">Động cơ</p>
+                <p className="text-sm font-bold text-white">
+                  {car.brand.toLowerCase() === 'porsche' ? 'Flat-6 4.0L' : 
+                   car.brand.toLowerCase() === 'audi' ? 'Dual Motor Electric' : 
+                   'V8 Bi-Turbo 4.0L'}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] text-white/50 uppercase tracking-widest mb-1">Tốc độ tối đa</p>
+                <p className="text-sm font-bold text-white">
+                  {car.brand.toLowerCase() === 'porsche' ? '320 km/h' : 
+                   car.brand.toLowerCase() === 'audi' ? '250 km/h' : 
+                   '280 km/h'}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] text-white/50 uppercase tracking-widest mb-1">Tăng tốc 0-100 km/h</p>
+                <p className="text-sm font-bold text-white">
+                  {car.brand.toLowerCase() === 'porsche' ? '3.2 giây' : 
+                   car.brand.toLowerCase() === 'audi' ? '3.3 giây' : 
+                   '4.5 giây'}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] text-white/50 uppercase tracking-widest mb-1">Tính năng nổi bật</p>
+                <p className="text-xs text-white/80 line-clamp-2">Cửa sổ trời, Camera 360, Hỗ trợ phanh khẩn cấp, Loa cao cấp</p>
+              </div>
+            </div>
             
             <div className="flex flex-col gap-2 mb-8">
               <p className="text-xs text-white/50 tracking-widest uppercase">Giá lăn bánh</p>

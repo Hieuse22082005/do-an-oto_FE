@@ -69,6 +69,7 @@ export default function MarketplaceTab({ user }: { user?: any }) {
   const [loading, setLoading] = useState(true);
   const [selectedCar, setSelectedCar] = useState<any | null>(null);
   const [activeCategory, setActiveCategory] = useState('Tất cả');
+  const [showAllCars, setShowAllCars] = useState(false);
   
   // Slider ref for horizontal scroll
   const sliderRef = useRef<HTMLDivElement>(null);
@@ -274,9 +275,12 @@ export default function MarketplaceTab({ user }: { user?: any }) {
               <h2 className="text-3xl md:text-4xl font-serif text-slate-800">Xe nổi bật</h2>
             </div>
             
-            <a href="#" className="text-blue-900 font-semibold hover:text-red-600 transition-colors flex items-center gap-1">
-              Xem tất cả <ChevronRight size={16} />
-            </a>
+            <button 
+              onClick={() => setShowAllCars(!showAllCars)}
+              className="text-blue-900 font-semibold hover:text-red-600 transition-colors flex items-center gap-1"
+            >
+              {showAllCars ? 'Thu gọn' : 'Xem tất cả'} <ChevronRight size={16} className={showAllCars ? 'rotate-90 transition-transform' : 'transition-transform'} />
+            </button>
           </motion.div>
 
           {/* Categories Tabs */}
@@ -290,7 +294,10 @@ export default function MarketplaceTab({ user }: { user?: any }) {
             {categories.map(cat => (
               <button
                 key={cat}
-                onClick={() => setActiveCategory(cat)}
+                onClick={() => {
+                  setActiveCategory(cat);
+                  setShowAllCars(true); // Tự động mở rộng khi chọn thể loại khác
+                }}
                 className={`px-6 py-2 border rounded-sm transition-all font-medium text-sm ${
                   activeCategory === cat 
                     ? 'bg-blue-900 text-white border-blue-900 shadow-md' 
@@ -325,7 +332,7 @@ export default function MarketplaceTab({ user }: { user?: any }) {
                     Không tìm thấy xe nào trong danh mục này.
                   </motion.p>
                 ) : (
-                  filteredListings.map((car) => {
+                  (showAllCars ? filteredListings : filteredListings.slice(0, 3)).map((car) => {
                     const isSold = car.status === 'sold';
                     return (
                       <motion.div 
