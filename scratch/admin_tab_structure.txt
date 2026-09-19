@@ -1,0 +1,50 @@
+"use client";
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../supabaseClient';
+
+export default function AdminTab() {
+  const [logs, setLogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({ evaluate: 0, legal: 0, searchHash: 0, users: 0, total: 0 });
+  const [topBrands, setTopBrands] = useState<any[]>([]);
+  
+  // STATE MỚI: Lọc theo ngày
+  const [filterDate, setFilterDate] = useState<string>('');
+
+  const fetchAdminData = async () => {
+    setLoading(true);
+    try {
+      // 1. TẠO QUERY CƠ BẢN
+      let query = supabase
+        .from('user_activity_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(200); // Tăng limit lên 200 để lấy được nhiều dữ liệu hơn trong 1 ngày
+      
+      // 2. NẾU CÓ CHỌN NGÀY -> ÁP DỤNG BỘ LỌC TỪ 00:00:00 ĐẾN 23:59:59 CỦA NGÀY ĐÓ
+      if (filterDate) {
+        const startOfDay = new Date(`${filterDate}T00:00:00`);
+        const endOfDay = new Date(`${filterDate}T23:59:59.999`);
+        
+        query = query
+          .gte('created_at', startOfDay.toISOString())
+          .lte('created_at', endOfDay.toISOString());
+      }
+
+      // 3. GỌI API SUPABASE
+      const { data, error } = await query;
+      
+      if (error) throw error;
+      const realData = data || [];
+      setLogs(realData);
+
+      // 4. TÍNH TOÁN LẠI CHỈ SỐ THỐNG KÊ (Chỉ tính những log của ngày đang chọn)
+      let evalCount = 0;
+      let legalCount = 0;
+      let hashCount = 0;
+      const brandMap: any = {};
+      const uniqueUsers = new Set();
+
+      realData.forEach(log => {
+        if (log.email) uniqueUsers.add(log.email);
+

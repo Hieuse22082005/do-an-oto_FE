@@ -1,0 +1,14 @@
+& <HomeTab onTryNow={() => handleTabChange("evaluate")} />}
+        {activeTab === "analytics" && <AnalyticsTab onTryNow={() => handleTabChange("evaluate")} />}
+        {activeTab === "evaluate" && <EvaluateTab user={user} onGoHome={() => setActiveTab("home")} />}
+        {activeTab === "search" && <SearchTab user={user} />}
+        {activeTab === "fines" && <FinesTab user={user} />}
+        {activeTab === "penalty" && <PenaltyTab/>}
+        {activeTab === "admin" && <AdminTab />} 
+      </main>
+
+      <footer className={`no-print border-t mt-auto w-[100vw] relative left-1/2 -translate-x-1/2 border-black/10 dark:border-white/10 ${activeTab === "home" ? "bg-[#030712] text-gray-300" : "bg-transparent text-slate-800 dark:text-gray-300"}`}>
+        <div className="max-w-[1400px] mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+          {/* Cột 1 */}
+          <div className="flex flex-col gap-4">
+            <div className={`flex items-center gap-2 f

@@ -1,0 +1,16 @@
+54: { id: 'phat-nguoi', title: 'TRA CỨU PHẠT NGUỘI', icon: '🚦', bg: 'bg-emerald-500', isFree: true },
+56: { id: 'dang-kiem', title: 'TRA CỨU ĐĂNG KIỂM', icon: '📋', bg: 'bg-indigo-500', isFree: false },
+57: { id: 'gplx', title: 'TRA CỨU BẰNG LÁI XE', icon: '💳', bg: 'bg-blue-500', isFree: false },
+208: TRA CỨU PHẠT NGUỘI
+216: Tra Cứu Phạt Nguội
+314: TRA CỨU PHẠT NGUỘI
+322: Tra Cứu Phạt Nguội
+346: <h3 className="font-bold text-white text-base mb-1">Tra Cứu Phạt Nguội Là Gì?</h3>
+428: <h3 className="font-bold text-white text-base mb-1">Tra Cứu Đăng Kiểm Là Gì?</h3>
+459: TRA CỨU XE MẤT CẮP
+467: Tra Cứu Xe Mất Cắp
+485: <h3 className="font-bold text-white text-base mb-1">Tra Cứu Phản Ánh Mất Cắp Là Gì?</h3>
+536: <h3 className="font-bold text-white text-base mb-1">Tra Cứu Giấy Phép Lái Xe Là Gì?</h3>
+582: statTitle = "Quản lý GPLX"; statNum = "1.2M+"; statDesc = "Lượt tra cứu thông qua"; statColor = "text-slate-200"; statBg="bg-slate-800/50"; statBorder="border-slate-700"; dotColor="bg-slate-400";
+622: <p className="text-xs text-blue-200/70 mb-5 relative z-10 font-medium">Đặc quyền VIP: Tra cứu tự động 100+ biển số.</p>
+631: <p className="text-xs text-slate-400 mb-0 relative z-10 font-medium">Nâng cấp VIP tra cứu tự động hàng loạt bằng Excel.</p>

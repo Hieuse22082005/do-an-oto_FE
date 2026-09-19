@@ -1,0 +1,5 @@
+const mainTabs = [
+    { id: "home", label: "Trang Chủ" },
+    { id: "analytics", label: "Báo Chí & Thống Kê" },
+    { id: "evaluate", label: "Định Giá AI" },
+  ];

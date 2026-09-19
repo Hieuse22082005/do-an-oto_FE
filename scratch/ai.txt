@@ -1,0 +1,31 @@
+{
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const mainTabs = [
+    { id: "home", label: "Trang Chủ" },
+    { id: "analytics", label: "Báo Chí & Thống Kê" },
+    { id: "evaluate", label: "Định Giá AI" },
+  ];
+
+  const dropdownTabs = [
+    { id: "fines", label: "Dịch vụ Pháp lý (Phạt nguội)" },
+    { id: "penalty", label: "Cẩm nang Luật giao thông" },
+    { id: "search", label: "Tra cứu Lịch sử Blockchain" },
+  ];
+
+  if (user?.role === "admin") dropdownTabs.push({ id: "admin", label: "Bảng Quản trị viên" });
+
+  const isDropdownActive = dropdownTabs.some(tab => tab.id === activeTab);
+
+  return (
+    <>
+      <style jsx global>{`
+        .nav-scrolled {
+          background: rgba(3, 7, 18, 0

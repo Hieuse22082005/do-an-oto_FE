@@ -1,0 +1,5 @@
+329: <div className="absolute top-0 right-0 p-12 opacity-10 pointer-events-none">
+491: {results.stolen.status === 'STOLEN' && <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')] opacity-10 mix-blend-overlay"></div>}
+542: <div className="absolute top-0 right-0 p-6 opacity-10"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Emblem_of_Vietnam.svg/200px-Emblem_of_Vietnam.svg.png" alt="Quoc Huy" className="w-32 h-32 brightness-0 invert"/></div>
+629: <div className="absolute -right-2 -top-2 text-6xl opacity-5 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-12 text-white">💼</div>
+641: <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 mix-blend-overlay pointer-events-none animate-[pulse_4s_ease-in-out_infinite]"></div>

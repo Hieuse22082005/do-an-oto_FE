@@ -1,0 +1,10 @@
+--- Input 0 ---
+<input type="text" value={queries.plate} onChange={(e) => handleInputChange('plate', e.target.value)} placeholder="Nhập biển số (Thử: 30G99999)" className="w-full px-6 py-4 bg-slate-50 dark:bg-[#1e293b]/50 border border-slate-200 dark:border-slate-700 rounded-xl text-center text-lg font-bold focus:border-blue-500 outline-none uppercase tracking-widest transition-all" required/>
+--- Input 1 ---
+<input type="text" value={queries.plate} onChange={(e) => handleInputChange('plate', e.target.value)} placeholder="Biển số xe" className="px-6 py-2.5 bg-white dark:bg-[#1e293b]/80 border border-slate-600 rounded-xl text-center text-lg font-bold text-white placeholder-slate-500 focus:border-emerald-500 uppercase outline-none transition-colors" required/>
+--- Input 2 ---
+<input type="text" value={queries.cert} onChange={(e) => handleInputChange('cert', e.target.value)} placeholder="Số Tem/GCN" className="px-6 py-2.5 bg-white dark:bg-[#1e293b]/80 border border-slate-600 rounded-xl text-center text-lg font-bold text-white placeholder-slate-500 focus:border-emerald-500 uppercase outline-none transition-colors" required/>
+--- Input 3 ---
+<input type="text" value={queries.vin} onChange={(e) => handleInputChange('vin', e.target.value)} placeholder="Nhập Số Khung hoặc Biển Số" className="w-full px-6 py-5 bg-black/40 border border-red-900/50 rounded-2xl text-center text-xl font-mono text-white placeholder-slate-500 focus:border-red-500 focus:bg-black/60 outline-none uppercase tracking-normal transition-all" required/>
+--- Input 4 ---
+<input type="text" value={queries.gplx} onChange={(e) => handleInputChange('gplx', e.target.value)} placeholder="Nhập 12 số GPLX (VD: 010123456789)" maxLength={12} className="w-full px-6 py-2.5 bg-white dark:bg-[#1e293b]/80 border border-slate-600 rounded-2xl text-center text-lg font-mono text-white placeholder-slate-500 focus:border-blue-400 focus:bg-white dark:bg-[#1e293b] outline-none tracking-[0.2em] transition-all shadow-inner" required/>

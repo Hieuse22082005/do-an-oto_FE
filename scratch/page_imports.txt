@@ -1,0 +1,25 @@
+ort { useState, useEffect } from "react";
+import { ethers } from "ethers"; 
+import { useRouter } from "next/navigation"; 
+
+import Header from "@/components/Header";
+import HomeTab from "@/components/tabs/HomeTab";
+import AnalyticsTab from "@/components/tabs/AnalyticsTab";
+import EvaluateTab from "@/components/tabs/EvaluateTab";
+import SearchTab from "@/components/tabs/SearchTab";
+import FinesTab from '@/components/tabs/FinesTab';
+import PenaltyTab from '@/components/tabs/PenaltyTab';
+import AdminTab from "@/components/tabs/AdminTab";
+import { supabase } from '../supabaseClient'; 
+import ChatBox from '@/components/ChatBox';
+
+export default function Home() {
+  const router = useRouter(); 
+  const [user, setUser] = useState<any>(null);
+  
+  const [showPricingModal, setShowPricingModal] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [activeTab, setActiveTab] = useState("home"); 
+
+  useEffect(() => {
+    const toke
