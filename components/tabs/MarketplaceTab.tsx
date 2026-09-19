@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Settings, Gauge, Users, Heart, ArrowRight, ChevronLeft, Loader2, CheckCircle2, ShieldCheck, Clock, CreditCard, Star, MessageSquareQuote, Check } from 'lucide-react';
 import CarDetailModal from '../modals/CarDetailModal';
 import TestimonialsSection from '../sections/TestimonialsSection';
+import ContactSupportBlock from '../ui/contact-support-block';
 
 // Animation variants for scroll reveal
 const fadeUpVariant: any = {
@@ -507,6 +508,17 @@ export default function MarketplaceTab({ user }: { user?: any }) {
           <TestimonialsSection />
         </div>
       </section>
+
+        {/* Support Block */}
+        <div className="w-full bg-slate-50 py-20 px-6">
+          <div className="max-w-7xl mx-auto flex flex-col items-center">
+             <div className="text-center mb-10">
+               <h2 className="text-3xl md:text-4xl font-serif text-slate-800 mb-4">Cần hỗ trợ thêm?</h2>
+               <p className="text-slate-500 max-w-xl">Đội ngũ của chúng tôi luôn sẵn sàng giải đáp mọi thắc mắc của bạn về mua bán xe, trả góp và bảo hành.</p>
+             </div>
+             <ContactSupportBlock />
+          </div>
+        </div>
 
       {/* 6. CTA BANNER */}
       <section className="w-full py-20 px-6 md:px-10 flex justify-center bg-white">
