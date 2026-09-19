@@ -104,7 +104,7 @@ export default function Header({ user, activeTab, onTabChange, onLoginClick, onL
         className="fixed top-0 left-0 z-50 w-full py-4 transition-all duration-500 font-sans"
         style={{ background: "transparent" }}
       >
-        <div className="mx-auto max-w-[1350px] px-6 flex items-center justify-between">
+        <div className="mx-auto max-w-[1350px] px-6 flex items-center justify-between gap-4 lg:gap-8">
 
           {/* LOGO */}
           <button
@@ -116,13 +116,13 @@ export default function Header({ user, activeTab, onTabChange, onLoginClick, onL
               alt="Logo"
               className="w-10 h-10 object-contain transition-all duration-300 group-hover:drop-shadow-[0_0_10px_rgba(0,242,254,0.9)]"
             />
-            <span className="text-2xl font-black uppercase tracking-tighter hidden sm:block transition-colors duration-300 text-[#00f2fe] drop-shadow-[0_0_2px_rgba(0,242,254,0.3)]">
+            <span className="text-2xl font-black uppercase tracking-tighter hidden lg:block transition-colors duration-300 text-[#00f2fe] drop-shadow-[0_0_2px_rgba(0,242,254,0.3)]">
               SmartCar
             </span>
           </button>
 
           {/* NAV LINKS */}
-          <nav className="hidden md:flex items-center gap-4 lg:gap-8 text-sm font-bold tracking-wide text-slate-600 dark:text-slate-400 whitespace-nowrap">
+          <nav className="hidden md:flex items-center gap-4 lg:gap-6 text-xs lg:text-sm font-bold tracking-wide text-slate-600 dark:text-slate-400 whitespace-nowrap">
             {mainTabs.map((tab) => (
               <button
                 key={tab.id}
@@ -185,7 +185,7 @@ export default function Header({ user, activeTab, onTabChange, onLoginClick, onL
             {user ? (
               <div className="flex items-center gap-3">
                 <div className="hidden sm:flex flex-col items-end cursor-default">
-                  <span className="text-xs font-bold text-white normal-case tracking-normal">
+                  <span className="text-xs font-bold text-white normal-case tracking-normal max-w-[100px] lg:max-w-[150px] truncate block">
                     {user.user_metadata?.display_name || user.email}
                   </span>
                   <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 flex items-center gap-1 ${
