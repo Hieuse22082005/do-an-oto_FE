@@ -122,7 +122,7 @@ export default function Header({ user, activeTab, onTabChange, onLoginClick, onL
           </button>
 
           {/* NAV LINKS */}
-          <nav className="hidden md:flex items-center gap-10 text-sm font-bold tracking-wide text-slate-600 dark:text-slate-400">
+          <nav className="hidden md:flex items-center gap-4 lg:gap-8 text-sm font-bold tracking-wide text-slate-600 dark:text-slate-400 whitespace-nowrap">
             {mainTabs.map((tab) => (
               <button
                 key={tab.id}
@@ -180,7 +180,7 @@ export default function Header({ user, activeTab, onTabChange, onLoginClick, onL
           </nav>
 
           {/* USER ACTIONS */}
-          <div className="flex items-center gap-4 text-xs font-mono uppercase tracking-widest">
+          <div className="flex items-center gap-4 text-xs font-mono uppercase tracking-widest whitespace-nowrap">
             <ThemeToggle />
             {user ? (
               <div className="flex items-center gap-3">
