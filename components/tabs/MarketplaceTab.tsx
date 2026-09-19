@@ -509,41 +509,60 @@ export default function MarketplaceTab({ user }: { user?: any }) {
         </div>
       </section>
 
-        {/* Support Block */}
-        <div className="w-full bg-slate-50 py-20 px-6">
-          <div className="max-w-7xl mx-auto flex flex-col items-center">
-             <div className="text-center mb-10">
-               <h2 className="text-3xl md:text-4xl font-serif text-slate-800 mb-4">Cần hỗ trợ thêm?</h2>
-               <p className="text-slate-500 max-w-xl">Đội ngũ của chúng tôi luôn sẵn sàng giải đáp mọi thắc mắc của bạn về mua bán xe, trả góp và bảo hành.</p>
-             </div>
-             <ContactSupportBlock />
-          </div>
+      {/* 6. SUPPORT & CTA */}
+      <section className="w-full py-24 px-6 md:px-10 flex justify-center bg-white relative overflow-hidden">
+        {/* Background blobs for luxury feel */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+           <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-blue-50 rounded-full mix-blend-multiply filter blur-3xl opacity-70"></div>
+           <div className="absolute bottom-[-10%] left-[-5%] w-[40%] h-[40%] bg-slate-50 rounded-full mix-blend-multiply filter blur-3xl opacity-70"></div>
         </div>
 
-      {/* 6. CTA BANNER */}
-      <section className="w-full py-20 px-6 md:px-10 flex justify-center bg-white">
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="max-w-5xl w-full bg-blue-50/50 rounded-2xl p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8 border border-blue-100"
-        >
-          <div className="md:w-2/3">
-            <h2 className="text-2xl md:text-3xl font-serif text-slate-800 mb-4">Chưa tìm được xe ưng ý?</h2>
-            <p className="text-slate-500">
-              Để lại số điện thoại — chuyên viên tư vấn sẽ gọi lại trong 30 phút để hiểu nhu cầu và tư vấn miễn phí.
+        <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-16 items-center relative z-10">
+          
+          {/* Left CTA Side */}
+          <motion.div 
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="flex flex-col"
+          >
+            <div className="flex items-center gap-4 mb-6">
+              <div className="h-[1px] w-12 bg-blue-900"></div>
+              <span className="text-blue-900 font-bold uppercase tracking-wider text-sm">Hỗ trợ 24/7</span>
+            </div>
+            
+            <h2 className="text-4xl md:text-5xl font-serif text-slate-800 mb-6 leading-tight">
+              Chưa tìm được xe ưng ý?
+            </h2>
+            
+            <p className="text-slate-500 text-lg mb-10 leading-relaxed max-w-lg">
+              Đừng lo lắng! Đội ngũ chuyên gia của SmartCar luôn sẵn sàng lắng nghe nhu cầu của bạn. 
+              Hãy gửi yêu cầu hỗ trợ hoặc gọi ngay Hotline để được tư vấn hoàn toàn miễn phí.
             </p>
-          </div>
-          <div className="md:w-1/3 flex flex-col sm:flex-row gap-4 w-full justify-end">
-            <button className="px-6 py-3 bg-red-600 text-white rounded-md font-bold hover:bg-red-700 transition-colors shadow-lg shadow-red-600/20 whitespace-nowrap">
-              Gọi Hotline ngay
-            </button>
-            <button className="px-6 py-3 bg-blue-900 text-white rounded-md font-bold hover:bg-blue-950 transition-colors shadow-lg shadow-blue-900/20 whitespace-nowrap flex items-center justify-center gap-2">
-              Xem tất cả xe <ChevronRight size={18} />
-            </button>
-          </div>
-        </motion.div>
+            
+            <div className="flex flex-col sm:flex-row gap-4 w-full">
+              <button className="px-8 py-4 bg-red-600 text-white rounded-md font-bold hover:bg-red-700 transition-colors shadow-lg shadow-red-600/30 whitespace-nowrap text-base flex items-center justify-center gap-2">
+                 Gọi Hotline: 1800.8888
+              </button>
+              <button className="px-8 py-4 bg-blue-900 text-white rounded-md font-bold hover:bg-blue-950 transition-colors shadow-lg shadow-blue-900/30 whitespace-nowrap text-base flex items-center justify-center gap-2">
+                Xem tất cả xe <ChevronRight size={18} />
+              </button>
+            </div>
+          </motion.div>
+
+          {/* Right Form Side */}
+          <motion.div 
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="w-full flex justify-center lg:justify-end"
+          >
+            <ContactSupportBlock />
+          </motion.div>
+          
+        </div>
       </section>
 
       {/* DETAIL MODAL */}
