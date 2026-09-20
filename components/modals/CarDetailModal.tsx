@@ -49,12 +49,13 @@ export default function CarDetailModal({ car, onClose, onBuy }: CarDetailModalPr
 
   // Auto-play carousel logic
   useEffect(() => {
-    if (isHovering || allMedia.length <= 1 || lightboxIndex !== null) return;
+    const currentMedia = allMedia[selectedIndex];
+    if (isHovering || allMedia.length <= 1 || lightboxIndex !== null || currentMedia?.type === 'video') return;
     const interval = setInterval(() => {
       setSelectedIndex((prev) => (prev + 1) % allMedia.length);
     }, 4000);
     return () => clearInterval(interval);
-  }, [allMedia.length, isHovering, lightboxIndex]);
+  }, [allMedia.length, isHovering, lightboxIndex, selectedIndex]);
 
   const handleBuy = async () => {
     setBuying(true);
