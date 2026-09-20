@@ -18,6 +18,7 @@ export default function CarDetailModal({ car, onClose, onBuy }: CarDetailModalPr
   // Magnifier states
   const [backgroundPosition, setBackgroundPosition] = useState('50% 50%');
   const [isZooming, setIsZooming] = useState(false);
+  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
   // Auto-play state
   const [isHovering, setIsHovering] = useState(false);
 
@@ -66,6 +67,7 @@ export default function CarDetailModal({ car, onClose, onBuy }: CarDetailModalPr
     const x = ((e.clientX - left) / width) * 100;
     const y = ((e.clientY - top) / height) * 100;
     setBackgroundPosition(`${x}% ${y}%`);
+    setCursorPosition({ x: e.clientX - left, y: e.clientY - top });
   };
 
   return (
@@ -151,7 +153,7 @@ export default function CarDetailModal({ car, onClose, onBuy }: CarDetailModalPr
           
           {/* Main Display (object-cover fills the frame beautifully) */}
           <div 
-            className="flex-1 relative cursor-crosshair overflow-hidden bg-slate-200"
+            className="flex-1 relative cursor-zoom-in overflow-hidden bg-slate-200"
             onMouseEnter={() => setIsZooming(true)}
             onMouseLeave={() => { setIsZooming(false); setBackgroundPosition('50% 50%'); }}
             onMouseMove={handleMouseMove}
@@ -178,16 +180,30 @@ export default function CarDetailModal({ car, onClose, onBuy }: CarDetailModalPr
                     autoPlay loop muted playsInline 
                   />
                 ) : (
-                  <img 
-                    src={allMedia[selectedIndex]?.url} 
-                    alt={car.model} 
-                    className="w-full h-full object-cover contrast-[1.05] saturate-[1.1] brightness-[1.02] ease-out" 
-                    style={{ 
-                       transformOrigin: backgroundPosition,
-                       transform: isZooming ? 'scale(2)' : 'scale(1)',
-                       transitionDuration: isZooming ? '100ms' : '400ms'
-                    }}
-                  />
+                  <>
+                    <img 
+                      src={allMedia[selectedIndex]?.url} 
+                      alt={car.model} 
+                      className="w-full h-full object-cover contrast-[1.05] saturate-[1.1] brightness-[1.02]" 
+                    />
+                    
+                    {/* The Magnifying Glass Circle */}
+                    {isZooming && (
+                      <div 
+                        className="absolute pointer-events-none rounded-full shadow-[0_0_0_7px_rgba(255,255,255,0.1),_0_0_20px_rgba(0,0,0,0.5),_inset_0_0_20px_rgba(0,0,0,0.5)] z-50 backdrop-blur-sm"
+                        style={{
+                          width: "300px",
+                          height: "300px",
+                          left: `${cursorPosition.x - 150}px`,
+                          top: `${cursorPosition.y - 150}px`,
+                          backgroundImage: `url('${allMedia[selectedIndex].url}')`,
+                          backgroundRepeat: "no-repeat",
+                          backgroundSize: "250%", 
+                          backgroundPosition: backgroundPosition,
+                        }}
+                      />
+                    )}
+                  </>
                 )}
               </motion.div>
             </AnimatePresence>
