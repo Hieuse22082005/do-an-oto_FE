@@ -136,8 +136,6 @@ export default function CarDetailModal({ car, onClose, onBuy }: CarDetailModalPr
       <div 
         className="w-full max-w-[1400px] h-[90vh] bg-white rounded-3xl shadow-2xl overflow-hidden relative flex flex-col lg:flex-row"
         onClick={(e) => e.stopPropagation()}
-        onMouseEnter={() => setIsHovering(true)}
-        onMouseLeave={() => setIsHovering(false)}
       >
         
         {/* Floating Close Button for Modal */}
@@ -149,7 +147,11 @@ export default function CarDetailModal({ car, onClose, onBuy }: CarDetailModalPr
         </button>
 
         {/* LEFT: Media Column */}
-        <div className="h-[40vh] lg:h-full w-full lg:w-[45%] flex-shrink-0 bg-slate-100 flex flex-col border-r border-slate-200 z-20">
+        <div 
+          className="h-[40vh] lg:h-full w-full lg:w-[45%] flex-shrink-0 bg-slate-100 flex flex-col border-r border-slate-200 z-20"
+          onMouseEnter={() => setIsHovering(true)}
+          onMouseLeave={() => setIsHovering(false)}
+        >
           
           {/* Main Display (object-cover fills the frame beautifully) */}
           <div 
