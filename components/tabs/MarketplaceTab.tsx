@@ -72,6 +72,7 @@ export default function MarketplaceTab({ user }: { user?: any }) {
   const [loading, setLoading] = useState(true);
   const [selectedCar, setSelectedCar] = useState<any | null>(null);
   const [activeCategory, setActiveCategory] = useState('Tất cả');
+  const [activeBrand, setActiveBrand] = useState<string | null>(null);
   const [showAllCars, setShowAllCars] = useState(false);
   
   // Slider ref for horizontal scroll
@@ -135,9 +136,13 @@ export default function MarketplaceTab({ user }: { user?: any }) {
     }
   };
 
-  const filteredListings = activeCategory === 'Tất cả' 
-    ? listings 
-    : listings.filter(car => car.category === activeCategory || (!car.category && activeCategory === 'Xe sang')); // Fallback for cars without category
+  let filteredListings = listings;
+  if (activeCategory !== 'Tất cả' && activeCategory !== 'Táº¥t cáº£') {
+    filteredListings = filteredListings.filter(car => car.category === activeCategory || (!car.category && activeCategory === 'Xe sang'));
+  }
+  if (activeBrand) {
+    filteredListings = filteredListings.filter(car => car.brand && car.brand.toLowerCase() === activeBrand.toLowerCase());
+  }
 
   return (
     <div className="w-full flex flex-col bg-white font-sans text-slate-800">
@@ -364,30 +369,53 @@ export default function MarketplaceTab({ user }: { user?: any }) {
             </div>
           </motion.div>
 
-          {/* Categories Tabs - Dark Mode */}
+          {/* Categories & Brand Filter */}
           <motion.div 
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-100px" }}
             variants={fadeUpVariant}
-            className="flex flex-wrap gap-3 mb-10"
+            className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-10"
           >
-            {categories.map(cat => (
-              <button
-                key={cat}
-                onClick={() => {
-                  setActiveCategory(cat);
+            <div className="flex flex-wrap gap-3">
+              {categories.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => {
+                    setActiveCategory(cat);
+                    setActiveBrand(null);
+                    setShowAllCars(true);
+                  }}
+                  className={`px-6 py-2 border rounded-full transition-all font-medium text-xs tracking-wider uppercase ${
+                    activeCategory === cat 
+                      ? 'bg-blue-900 text-white border-blue-900 shadow-md' 
+                      : 'bg-white text-slate-600 border-slate-200 hover:border-blue-900 hover:text-blue-900'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            {/* Brand Filter Dropdown */}
+            <div className="relative min-w-[200px]">
+              <select
+                value={activeBrand || ''}
+                onChange={(e) => {
+                  setActiveBrand(e.target.value || null);
                   setShowAllCars(true);
                 }}
-                className={`px-6 py-2 border rounded-full transition-all font-medium text-xs tracking-wider uppercase ${
-                  activeCategory === cat 
-                    ? 'bg-blue-900 text-white border-blue-900 shadow-md' 
-                    : 'bg-white text-slate-600 border-slate-200 hover:border-blue-900 hover:text-blue-900'
-                }`}
+                className="w-full appearance-none px-6 py-2 bg-white border border-slate-200 rounded-full text-slate-700 font-bold text-xs tracking-wider uppercase outline-none focus:border-blue-900 cursor-pointer shadow-sm hover:shadow-md transition-all"
               >
-                {cat}
-              </button>
-            ))}
+                <option value="">Tất cả hãng xe</option>
+                {Array.from(new Set(listings.map(car => car.brand).filter(Boolean))).sort().map(brand => (
+                  <option key={brand as string} value={brand as string}>{brand as string}</option>
+                ))}
+              </select>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-blue-900 text-[10px]">
+                ▼
+              </div>
+            </div>
           </motion.div>
           
           {loading ? (

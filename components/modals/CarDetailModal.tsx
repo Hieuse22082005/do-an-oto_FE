@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 
 interface CarDetailModalProps {
@@ -58,7 +58,41 @@ function MagnifierImage({ src, alt }: { src: string; alt: string }) {
 export default function CarDetailModal({ car, onClose, onBuy }: CarDetailModalProps) {
 
   const [buying, setBuying] = useState(false);
+  const [activeMedia, setActiveMedia] = useState(0);
+  const [isHoveringGallery, setIsHoveringGallery] = useState(false);
   
+  // Build media list
+  const mediaList: { type: string, url: string }[] = [];
+  if (car.video_url) {
+    mediaList.push({ type: 'video', url: car.video_url });
+  }
+  if (car.image_url) {
+    mediaList.push({ type: 'image', url: car.image_url });
+  }
+  if (car.gallery && Array.isArray(car.gallery)) {
+    car.gallery.forEach((url: string) => {
+      mediaList.push({ type: 'image', url });
+    });
+  }
+  // Fallback if neither exists
+  if (mediaList.length === 0) {
+    mediaList.push({ type: 'image', url: 'https://via.placeholder.com/800x600' });
+  }
+  
+  // Auto-slide gallery
+  useEffect(() => {
+    if (mediaList.length <= 1 || isHoveringGallery) return;
+    
+    // Stop sliding if it's a video so they can watch it
+    if (mediaList[activeMedia]?.type === 'video') return;
+    
+    const interval = setInterval(() => {
+      setActiveMedia((prev) => (prev + 1) % mediaList.length);
+    }, 4500);
+
+    return () => clearInterval(interval);
+  }, [mediaList.length, isHoveringGallery, activeMedia]);
+
   // Prevent scrolling when modal is open
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -103,9 +137,68 @@ export default function CarDetailModal({ car, onClose, onBuy }: CarDetailModalPr
           <ArrowLeft size={24} />
         </button>
 
-        {/* Left Side: Poster Image with Magnifier */}
-        <div className="w-full md:w-1/2 h-1/2 md:h-full relative bg-black flex items-center justify-center overflow-hidden group">
-          <MagnifierImage src={car.image_url} alt={car.model} />
+        {/* Left Side: Media Gallery */}
+        <div 
+          className="w-full md:w-1/2 h-1/2 md:h-full relative bg-black flex flex-col items-center justify-center overflow-hidden group"
+          onMouseEnter={() => setIsHoveringGallery(true)}
+          onMouseLeave={() => setIsHoveringGallery(false)}
+        >
+          
+          {/* Main Display */}
+          <div className="w-full h-full relative overflow-hidden bg-black">
+            <AnimatePresence>
+              <motion.div
+                key={activeMedia}
+                initial={{ opacity: 0, x: 150 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -150 }}
+                transition={{ duration: 0.5, ease: "easeInOut" }}
+                className="w-full h-full absolute inset-0 flex items-center justify-center"
+              >
+                {mediaList[activeMedia]?.type === 'video' ? (
+                  <video 
+                    src={mediaList[activeMedia].url} 
+                    className="w-full h-full object-cover"
+                    autoPlay 
+                    loop 
+                    muted 
+                    playsInline
+                  />
+                ) : (
+                  <MagnifierImage src={mediaList[activeMedia]?.url} alt={car.model} />
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Thumbnails */}
+          {mediaList.length > 1 && (
+            <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-3 px-4 z-50">
+              {mediaList.map((media, idx) => (
+                <button 
+                  key={idx}
+                  onClick={() => setActiveMedia(idx)}
+                  className={`relative w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                    activeMedia === idx ? 'border-amber-500 scale-110 shadow-[0_0_15px_rgba(245,158,11,0.5)]' : 'border-white/20 opacity-60 hover:opacity-100 hover:scale-105'
+                  }`}
+                >
+                  {media.type === 'video' ? (
+                    <>
+                      <video src={media.url} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                        <div className="w-6 h-6 rounded-full bg-white/30 backdrop-blur flex items-center justify-center">
+                          <div className="w-0 h-0 border-t-[4px] border-t-transparent border-l-[6px] border-l-white border-b-[4px] border-b-transparent ml-0.5"></div>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <img src={media.url} className="w-full h-full object-cover" alt="Thumbnail" />
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+
         </div>
 
         {/* Right Side: Details */}
