@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, Calendar, Clock, User, Phone, Mail, Car, Loader2, CheckCircle2 } from 'lucide-react';
 
+import { apiService } from '../../services/api';
+
 interface BookingModalProps {
   car: any;
   onClose: () => void;
@@ -32,25 +34,19 @@ export default function BookingModal({ car, onClose }: BookingModalProps) {
     setErrorMsg('');
     
     try {
-      // Gọi tới Backend của Next.js (thư mục app/api/bookings)
-      const res = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          carId: car?.id,
-          carModel: car?.model,
-          ...formData
-        })
+      const res = await apiService.bookCarViewing({
+        carId: car?.id,
+        carModel: car?.model,
+        ...formData
       });
       
-      const data = await res.json();
-      if (data.success) {
+      if (res.status === 200 || res.status === 201) {
         setSuccess(true);
       } else {
-        setErrorMsg('Có lỗi xảy ra: ' + data.error);
+        setErrorMsg('Có lỗi xảy ra, vui lòng thử lại!');
       }
-    } catch (err) {
-      setErrorMsg('Không thể kết nối đến server Backend Next.js!');
+    } catch (err: any) {
+      setErrorMsg(err.response?.data?.message || 'Không thể kết nối đến Backend!');
     }
     setLoading(false);
   };
