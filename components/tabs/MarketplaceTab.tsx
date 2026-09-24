@@ -82,7 +82,7 @@ export default function MarketplaceTab({ user }: { user?: any }) {
   const fetchListings = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:8080/api/v1/cars');
+      const response = await fetch('http://localhost:8080/api/v1/cars', { cache: 'no-store' });
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
