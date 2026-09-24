@@ -199,6 +199,7 @@ export default function AdminTab() {
       case 'EVALUATE_CAR': return <span className="text-blue-600 font-semibold">Định giá</span>;
       case 'TRA_CUU_PHAT_NGUOI': return <span className="text-orange-600 font-semibold">Pháp lý</span>;
       case 'SEARCH_HASH': return <span className="text-indigo-600 font-semibold">Blockchain</span>;
+      case 'BOOK_CAR': return <span className="text-amber-600 font-semibold">Đặt Lịch</span>;
       default: return <span className="text-gray-600 dark:text-gray-400 font-semibold">{type}</span>;
     }
   };

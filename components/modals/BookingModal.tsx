@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { X, Calendar, Clock, User, Phone, Mail, Car, Loader2, CheckCircle2 } from 'lucide-react';
 
 import { apiService } from '../../services/api';
+import { supabase } from '../../supabaseClient';
 
 interface BookingModalProps {
   car: any;
@@ -42,6 +43,21 @@ export default function BookingModal({ car, onClose }: BookingModalProps) {
       
       if (res.status === 200 || res.status === 201) {
         setSuccess(true);
+        // Add log
+        try {
+          await supabase.from('user_activity_logs').insert([{
+            email: formData.email,
+            action_type: 'BOOK_CAR',
+            action_details: {
+              car_model: car?.model,
+              date: formData.date,
+              time: formData.time,
+              phone: formData.phone
+            }
+          }]);
+        } catch (logErr) {
+          console.error('Log error', logErr);
+        }
       } else {
         setErrorMsg('Có lỗi xảy ra, vui lòng thử lại!');
       }
