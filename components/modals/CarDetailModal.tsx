@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Settings, Zap, Gauge, Users, CalendarDays, Key, MapPin, Loader2, Cog, Fuel, Activity, Star, Play, ShieldCheck, FileText, Banknote, Truck, Check } from 'lucide-react';
+import BookingModal from './BookingModal';
 
 interface CarDetailModalProps {
   car: any;
@@ -12,6 +13,7 @@ interface CarDetailModalProps {
 
 export default function CarDetailModal({ car, onClose, onBuy }: CarDetailModalProps) {
   const [buying, setBuying] = useState(false);
+  const [showBookingModal, setShowBookingModal] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   
@@ -334,11 +336,11 @@ export default function CarDetailModal({ car, onClose, onBuy }: CarDetailModalPr
 
               <div className="space-y-3">
                 <button 
-                  onClick={handleBuy}
-                  disabled={buying || car.status !== 'available'}
+                  onClick={() => setShowBookingModal(true)}
+                  disabled={car.status !== 'available'}
                   className="w-full py-3.5 bg-gradient-to-r from-amber-600 to-amber-500 text-white shadow-lg shadow-amber-500/20 font-bold uppercase tracking-widest text-sm rounded-lg hover:shadow-amber-500/40 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed group"
                 >
-                  {buying ? <Loader2 className="animate-spin" size={18} /> : <Key size={18} className="group-hover:rotate-12 transition-transform" />}
+                  <Key size={18} className="group-hover:rotate-12 transition-transform" />
                   {car.status !== 'available' ? 'Đã bán' : 'Đặt lịch xem xe ngay'}
                 </button>
                 
@@ -355,8 +357,16 @@ export default function CarDetailModal({ car, onClose, onBuy }: CarDetailModalPr
 
           </div>
         </div>
-
       </div>
+
+      <AnimatePresence>
+        {showBookingModal && (
+          <BookingModal 
+            car={car} 
+            onClose={() => setShowBookingModal(false)} 
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
