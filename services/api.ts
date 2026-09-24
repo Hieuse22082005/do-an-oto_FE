@@ -24,7 +24,11 @@ export const apiService = {
   verifyOtp: (email: string, otp: string) => 
     apiClient.post("/api/v1/auth/verify-otp", { email, otp }),
 
-  // 2. TRANSACTION API
+  // 2. BOOKING API
+  bookCarViewing: (payload: any) => 
+    apiClient.post("/api/v1/bookings", payload),
+
+  // 3. TRANSACTION API
   evaluateCar: (payload: any) => 
     apiClient.post("/api/v1/transactions/evaluate", payload),
     

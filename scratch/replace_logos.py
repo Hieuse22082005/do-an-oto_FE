@@ -1,0 +1,98 @@
+import codecs
+import re
+
+file_path = 'components/tabs/MarketplaceTab.tsx'
+
+with codecs.open(file_path, 'r', 'utf-8') as f:
+    content = f.read()
+
+# Replace "Kiểu dáng xe" block with "Thương hiệu nổi bật" block
+old_kieu_dang = """<h4 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+              <Car className="text-blue-600" /> Kiểu dáng xe
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                { name: 'SUV / CUV', desc: 'Đa dụng & Mạnh mẽ', img: 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?auto=format&fit=crop&w=600&q=80' },
+                { name: 'SEDAN', desc: 'Thanh lịch & Doanh nhân', img: 'https://images.unsplash.com/photo-1532581140115-3e355d1ed1de?auto=format&fit=crop&w=600&q=80' },
+                { name: 'THỂ THAO', desc: 'Tốc độ & Đam mê', img: 'https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&w=600&q=80' },
+                { name: 'XE ĐIỆN', desc: 'Tương lai xanh', img: 'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?auto=format&fit=crop&w=600&q=80' },
+              ].map(cat => (
+                <motion.div variants={fadeUpVariant} key={cat.name} className="group relative h-48 overflow-hidden rounded-xl border border-slate-200 bg-white flex items-end p-5 transition-all hover:shadow-xl hover:border-blue-300 cursor-pointer">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
+                  <img src={cat.img} alt={cat.name} className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-110 group-hover:opacity-100 transition duration-700" />
+                  <div className="relative z-20">
+                    <h4 className="text-white font-bold text-xl tracking-wider">{cat.name}</h4>
+                    <p className="text-blue-300 text-xs font-mono mt-1">{cat.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>"""
+
+new_thuong_hieu = """<h4 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+              <Car className="text-blue-600" /> Thương hiệu nổi bật
+            </h4>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+              {[
+                { name: 'Mercedes', logo: 'https://upload.wikimedia.org/wikipedia/commons/9/90/Mercedes-Logo.svg' },
+                { name: 'BMW', logo: 'https://upload.wikimedia.org/wikipedia/commons/4/44/BMW.svg' },
+                { name: 'Porsche', logo: 'https://upload.wikimedia.org/wikipedia/en/d/d3/Porsche_logo.svg' },
+                { name: 'Toyota', logo: 'https://upload.wikimedia.org/wikipedia/commons/9/9d/Toyota_carlogo.svg' },
+                { name: 'Honda', logo: 'https://upload.wikimedia.org/wikipedia/commons/7/7b/Honda_Logo.svg' },
+                { name: 'VinFast', logo: 'https://upload.wikimedia.org/wikipedia/commons/6/6c/VinFast_logo.svg' },
+              ].map(brand => (
+                <motion.div variants={fadeUpVariant} key={brand.name} className="rounded-xl bg-white border border-slate-200 shadow-sm p-6 flex flex-col items-center justify-center group cursor-pointer transition-all hover:shadow-lg hover:border-blue-300 hover:-translate-y-1 h-32">
+                  <img src={brand.logo} alt={brand.name} className="h-12 w-auto object-contain mb-3 group-hover:scale-110 transition duration-300 opacity-70 group-hover:opacity-100" />
+                  <h4 className="text-slate-800 font-bold text-sm">{brand.name}</h4>
+                </motion.div>
+              ))}
+            </div>"""
+
+content = content.replace(old_kieu_dang, new_thuong_hieu)
+
+# Replace "Quốc gia xuất xứ" block 
+old_quoc_gia = """<h4 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+              <Globe className="text-blue-600" /> Quốc gia xuất xứ
+            </h4>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+              {[
+                { name: 'Đức', flag: '🇩🇪', brands: 'Mercedes, BMW, Audi' },
+                { name: 'Nhật Bản', flag: '🇯🇵', brands: 'Toyota, Lexus, Honda' },
+                { name: 'Mỹ', flag: '🇺🇸', brands: 'Ford, Chevrolet, Tesla' },
+                { name: 'Anh Quốc', flag: '🇬🇧', brands: 'Bentley, Land Rover' },
+                { name: 'Hàn Quốc', flag: '🇰🇷', brands: 'Hyundai, Kia' },
+                { name: 'Việt Nam', flag: '🇻🇳', brands: 'VinFast' },
+              ].map(country => (
+                <motion.div variants={fadeUpVariant} key={country.name} className="rounded-xl bg-white border border-slate-200 shadow-sm p-6 text-center group cursor-pointer transition-all hover:shadow-lg hover:border-blue-300 hover:-translate-y-1">
+                  <div className="text-5xl mb-4 group-hover:scale-110 transition duration-300 drop-shadow-md">{country.flag}</div>
+                  <h4 className="text-slate-800 font-bold mb-1">{country.name}</h4>
+                  <p className="text-slate-500 text-[10px] uppercase font-mono">{country.brands}</p>
+                </motion.div>
+              ))}
+            </div>"""
+
+new_quoc_gia = """<h4 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+              <Globe className="text-blue-600" /> Quốc gia xuất xứ
+            </h4>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+              {[
+                { name: 'Đức', flag: 'https://flagcdn.com/w80/de.png', brands: 'Mercedes, BMW, Audi' },
+                { name: 'Nhật Bản', flag: 'https://flagcdn.com/w80/jp.png', brands: 'Toyota, Lexus, Honda' },
+                { name: 'Mỹ', flag: 'https://flagcdn.com/w80/us.png', brands: 'Ford, Chevrolet, Tesla' },
+                { name: 'Anh Quốc', flag: 'https://flagcdn.com/w80/gb.png', brands: 'Bentley, Land Rover' },
+                { name: 'Hàn Quốc', flag: 'https://flagcdn.com/w80/kr.png', brands: 'Hyundai, Kia' },
+                { name: 'Việt Nam', flag: 'https://flagcdn.com/w80/vn.png', brands: 'VinFast' },
+              ].map(country => (
+                <motion.div variants={fadeUpVariant} key={country.name} className="rounded-xl bg-white border border-slate-200 shadow-sm p-6 text-center flex flex-col items-center justify-center group cursor-pointer transition-all hover:shadow-lg hover:border-blue-300 hover:-translate-y-1">
+                  <img src={country.flag} alt={country.name} className="w-12 h-auto shadow-sm rounded-sm mb-4 group-hover:scale-110 transition duration-300" />
+                  <h4 className="text-slate-800 font-bold mb-1">{country.name}</h4>
+                  <p className="text-slate-500 text-[10px] uppercase font-mono">{country.brands}</p>
+                </motion.div>
+              ))}
+            </div>"""
+
+content = content.replace(old_quoc_gia, new_quoc_gia)
+
+with codecs.open(file_path, 'w', 'utf-8') as f:
+    f.write(content)
+
+print("Replaced with brand logos and country flag images!")

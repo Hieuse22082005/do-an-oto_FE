@@ -1,17 +1,16 @@
 import codecs
+import re
 
-files = [
-    r'c:\Users\Hieu\Desktop\do an oto_FE\components\ThemeToggle.tsx',
-    r'c:\Users\Hieu\Desktop\do an oto_FE\components\ui\glowy-waves-hero-shadcnui.tsx',
-    r'c:\Users\Hieu\Desktop\do an oto_FE\components\ui\home-testimonials.tsx'
-]
+file_path = 'components/tabs/MarketplaceTab.tsx'
 
-for filepath in files:
-    try:
-        content = codecs.open(filepath, 'r', 'utf-8').read()
-        if 'import { useTheme } from "next-themes";' in content:
-            content = content.replace('import { useTheme } from "next-themes";', 'import { useTheme } from "@/components/ThemeProvider";')
-            codecs.open(filepath, 'w', 'utf-8').write(content)
-            print('Updated', filepath)
-    except Exception as e:
-        print('Error on', filepath, e)
+with codecs.open(file_path, 'r', 'utf-8') as f:
+    content = f.read()
+
+# Add Car, Globe if not present
+if "import { ChevronRight" in content:
+    content = content.replace("import { ChevronRight, Settings", "import { ChevronRight, Car, Globe, Settings")
+
+with codecs.open(file_path, 'w', 'utf-8') as f:
+    f.write(content)
+
+print("Fixed imports in MarketplaceTab.tsx!")
