@@ -1,7 +1,7 @@
 -- Bảng lưu trữ thông tin Đặt lịch xem xe
 CREATE TABLE IF NOT EXISTS public.car_bookings (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-  car_id uuid REFERENCES public.showroom_cars(id) ON DELETE SET NULL,
+  car_id text,
   car_model text NOT NULL,
   customer_name text NOT NULL,
   phone text NOT NULL,

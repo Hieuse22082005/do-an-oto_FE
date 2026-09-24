@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, Calendar, Clock, User, Phone, Mail, Car, Loader2, CheckCircle2 } from 'lucide-react';
-import { apiService } from '../../services/api';
 
 interface BookingModalProps {
   car: any;
@@ -33,21 +32,25 @@ export default function BookingModal({ car, onClose }: BookingModalProps) {
     setErrorMsg('');
     
     try {
-      // Gọi sang Backend Java/Node ở cổng 8080 (giống như send-otp)
-      const res = await apiService.bookCarViewing({
-        carId: car?.id,
-        carModel: car?.model,
-        ...formData
+      // Gọi tới Backend của Next.js (thư mục app/api/bookings)
+      const res = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          carId: car?.id,
+          carModel: car?.model,
+          ...formData
+        })
       });
       
-      // Axios trả về res.data
-      if (res.status === 200 || res.status === 201) {
+      const data = await res.json();
+      if (data.success) {
         setSuccess(true);
       } else {
-        setErrorMsg('Có lỗi xảy ra, vui lòng thử lại!');
+        setErrorMsg('Có lỗi xảy ra: ' + data.error);
       }
-    } catch (err: any) {
-      setErrorMsg(err.response?.data?.message || 'Không thể kết nối đến Backend!');
+    } catch (err) {
+      setErrorMsg('Không thể kết nối đến server Backend Next.js!');
     }
     setLoading(false);
   };
