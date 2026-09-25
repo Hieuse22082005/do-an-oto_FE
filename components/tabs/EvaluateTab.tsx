@@ -230,104 +230,52 @@ export default function EvaluateTab({ user, onGoHome }: { user: any, onGoHome: (
   };
 
   const payAndEvaluate = async () => {
-    const today = new Date().toLocaleDateString('vi-VN'); 
-    const usageKey = `usage_${user?.email}_${today}`;
-    const currentUsage = parseInt(localStorage.getItem(usageKey) || "0");
-
-    if (user?.tier !== 'vip' && currentUsage >= 3) {
-      alert("🔒 HẾT LƯỢT SỬ DỤNG HÔM NAY!\nBạn đã dùng hết 3 lượt định giá miễn phí. Vui lòng nâng cấp VIP để sử dụng không giới hạn!");
-      return; 
+    if (!user || !user.id) {
+      alert("Vui lòng đăng nhập để định giá!");
+      return;
     }
-
-   if (!hasSignature || !signatureData) {
+    
+    if (!hasSignature || !signatureData) {
       alert("Vui lòng ký xác nhận trước khi thanh toán!");
       return;
     }
+    
     setLoading(true);
+    setLoadingText("AI đang phân tích và gửi lệnh ký ngầm...");
+    
     try {
       const payloadData = { 
           ...formData, 
           user_email: user?.email,
-          user_signature: signatureData,
-          txhash: "draft_mode_pending" 
+          user_signature: signatureData
       };
-      // ... code gọi API ở dưới
-      // -----------------------------------------
+      
+      const reqBody = {
+          user_id: user.id,
+          vehicle_data: payloadData
+      };
 
-      const draftRes = await fetch("http://127.0.0.1:8080/api/v1/transactions/evaluate/draft", {
+      const res = await fetch("http://127.0.0.1:8080/api/v1/transactions/evaluate/sponsored", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payloadData),
+        body: JSON.stringify(reqBody),
       });
 
-      if (!draftRes.ok) {
-        const error = await draftRes.json();
+      if (!res.ok) {
+        const error = await res.json();
         const errorMsg = typeof error.detail === 'object' ? JSON.stringify(error.detail) : error.detail;
-        throw new Error(errorMsg || "Lỗi khi gọi AI định giá (Draft)!");
+        throw new Error(errorMsg || "Lỗi hoặc không đủ số dư Token!");
       }
 
-      const draftData = await draftRes.json();
-      const { predicted_price_raw, carHash, salt } = draftData;
-
-      if (!(window as any).ethereum) throw new Error("Vui lòng cài đặt MetaMask!");
-      const provider = new ethers.BrowserProvider((window as any).ethereum);
-      setLoadingText("Vui lòng mở MetaMask để xác nhận...");
-      const signer = await provider.getSigner();
+      const data = await res.json();
       
-      const ABI = ["function payForValuation(string memory carHash) public payable"];
-      const contract = new ethers.Contract("0x2169C854f514516038A068cCF758C2b8D40bCe01", ABI, signer);
-
-      const tx = await contract.payForValuation(carHash, { 
-        value: ethers.parseEther(user?.tier === 'vip' ? "0" : "0.001") 
-      });
-      await tx.wait();
-      
-      if (user?.tier !== 'vip') {
-        localStorage.setItem(usageKey, (currentUsage + 1).toString());
-      }
-
-      const confirmPayload = {
-        txhash: tx.hash,
-        carHash: carHash,
-        salt: salt,
-        predicted_price: predicted_price_raw,
-        vehicle_data: payloadData
-      };
-
-      const confirmRes = await fetch("http://127.0.0.1:8080/api/v1/transactions/evaluate/confirm", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(confirmPayload),
-      });
-
-      if (!confirmRes.ok) throw new Error("Dữ liệu bị từ chối lưu vào Database!");
-      const finalResult = await confirmRes.json();
-      
-      if (user) {
-        try {
-          await supabase.from('user_activity_logs').insert([{
-            email: user.email, 
-            action_type: 'EVALUATE_CAR',
-            action_details: { 
-              brand: formData.Vehicle_brand, 
-              model: formData.Vehicle_model, 
-              price: finalResult.data?.predicted_price || predicted_price_raw
-            }
-          }]);
-        } catch (err) {}
-      }
-
-      setResult({ ...finalResult.data, ...formData, userSignature: signatureData });
+      // Thành công, sang bước kết quả
+      setResult({ ...data, ...formData, userSignature: signatureData });
       setStep(4);
-
-      const prev = JSON.parse(localStorage.getItem(`txHistory_${user?.email}`) || "[]");
-      localStorage.setItem(`txHistory_${user?.email}`, JSON.stringify([
-        { txhash: tx.hash, license_plate: formData.license_plate, date: new Date().toLocaleString('vi-VN') }, 
-        ...prev
-      ]));
-
-    } catch (error: any) {
-      alert(error.message || error.reason || "Giao dịch bị hủy hoặc lỗi MetaMask!");
+      
+    } catch (e: any) {
+      console.error(e);
+      alert(e.message || "Có lỗi xảy ra");
     } finally {
       setLoading(false);
     }
@@ -362,7 +310,7 @@ export default function EvaluateTab({ user, onGoHome }: { user: any, onGoHome: (
               <div className="flex items-center space-x-2">
                 <Receipt className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                 <span className="font-semibold text-slate-900 dark:text-white">
-                  Xác Nhận Web3
+                  Xác Nhận Định Giá
                 </span>
               </div>
               <span className="text-sm text-gray-500 font-mono">
@@ -370,7 +318,7 @@ export default function EvaluateTab({ user, onGoHome }: { user: any, onGoHome: (
               </span>
             </div>
             <div className="mt-2 text-xs text-gray-500">
-              Ký giao dịch qua mạng lưới Blockchain để lưu trữ vĩnh viễn.
+              Đóng dấu hợp đồng thông minh ngầm (Relayer) để lưu trữ vĩnh viễn.
             </div>
           </div>
 
@@ -385,9 +333,9 @@ export default function EvaluateTab({ user, onGoHome }: { user: any, onGoHome: (
               <span className="text-slate-900 dark:text-gray-100 font-bold tracking-wider">{formData.license_plate}</span>
             </div>
             <div className="border-t border-black/10 dark:border-white/10 pt-3 flex justify-between items-center font-black">
-              <span className="text-slate-900 dark:text-gray-100 font-sans">Phí định giá</span>
+              <span className="text-slate-900 dark:text-gray-100 font-sans">Phí định giá (Token)</span>
               <span className="text-orange-600 dark:text-orange-400 text-lg">
-                {user?.tier === 'vip' ? '0 ETH' : '0.001 ETH'}
+                {user?.tier === 'vip' ? '0 ETH' : '1 Token'}
               </span>
             </div>
           </div>
@@ -397,7 +345,7 @@ export default function EvaluateTab({ user, onGoHome }: { user: any, onGoHome: (
             <div className="flex items-center space-x-3">
               <CreditCard className="w-4 h-4 text-gray-500" />
               <span className="text-sm text-gray-600 dark:text-gray-400 font-mono">
-                Phương thức: MetaMask (Web3)
+                Phương thức: Trừ Token nội bộ
               </span>
             </div>
             <div className="flex items-center space-x-3">
@@ -464,7 +412,7 @@ export default function EvaluateTab({ user, onGoHome }: { user: any, onGoHome: (
                   <svg className="animate-spin h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                   <span className="text-sm">{loadingText}</span>
                 </>
-              ) : 'Ký & Thanh Toán →'}
+              ) : 'Định Giá Ngay →'}
             </button>
           </div>
         </div>
@@ -844,7 +792,7 @@ export default function EvaluateTab({ user, onGoHome }: { user: any, onGoHome: (
 
         <div className="flex justify-between pt-8 border-t border-black/10 dark:border-white/10 relative z-10">
           <button onClick={onGoHome} className="text-gray-600 dark:text-gray-400 font-bold px-8 py-4 bg-white dark:bg-black/5 dark:bg-white/5 hover:bg-white dark:bg-black/5 dark:hover:bg-white/10 border border-black/5 dark:border-white/5 hover:border-white/10 rounded-xl transition-all backdrop-blur-md">← Trở về</button>
-          <button onClick={() => setStep(3)} className="btn-uiverse rounded-xl font-extrabold px-10 py-4 transition-all hover:scale-[1.02]" style={{ "--color": "#059669" } as any}>Thẩm Định & Ký Web3 →</button>
+          <button onClick={() => setStep(3)} className="btn-uiverse rounded-xl font-extrabold px-10 py-4 transition-all hover:scale-[1.02]" style={{ "--color": "#059669" } as any}>Thẩm Định Bằng Token →</button>
         </div>
       </div>
       </div>

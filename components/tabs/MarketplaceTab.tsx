@@ -170,7 +170,7 @@ export default function MarketplaceTab({ user }: { user?: any }) {
           >
             <h1 className="text-white text-5xl md:text-7xl font-light leading-tight mb-2 drop-shadow-lg">
               SmartCar <br />
-              <span className="font-serif italic text-amber-500">Premium</span> <br />
+              <span className="font-sans italic text-amber-500">Premium</span> <br />
               <span className="font-bold drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">Collection</span>
             </h1>
             <div className="flex gap-4 mt-8">
@@ -218,7 +218,7 @@ export default function MarketplaceTab({ user }: { user?: any }) {
               <div className="h-[1px] w-12 bg-blue-900"></div>
               <span className="text-blue-900 font-bold uppercase tracking-wider text-sm">Cam kết của chúng tôi</span>
             </div>
-            <h2 className="text-3xl md:text-4xl font-serif text-slate-800">Tại sao chọn SmartCar?</h2>
+            <h2 className="text-3xl md:text-4xl font-sans text-slate-800">Tại sao chọn SmartCar?</h2>
             <p className="text-slate-500 mt-4">Chúng tôi xây dựng niềm tin bằng quy trình, không phải lời hứa suông.</p>
           </motion.div>
 
@@ -297,7 +297,7 @@ export default function MarketplaceTab({ user }: { user?: any }) {
             <div className="flex items-center justify-between">
               <div>
                 <span className="text-blue-900 font-bold uppercase tracking-[0.2em] text-xs mb-4 block">Our Collection</span>
-                <h2 className="text-4xl md:text-5xl font-serif text-slate-800">Featured Luxury Cars</h2>
+                <h2 className="text-4xl md:text-5xl font-sans text-slate-800">Featured Luxury Cars</h2>
               </div>
               
               <button 
@@ -426,7 +426,7 @@ export default function MarketplaceTab({ user }: { user?: any }) {
                         <div className="p-6 flex flex-col flex-grow relative z-10 -mt-6">
                           <div className="flex justify-between items-end mb-4">
                             <div>
-                              <h3 className="font-black text-xl text-slate-800 tracking-tight">{car.brand} {car.model}</h3>
+                              <h3 className="font-black text-xl text-slate-800 ">{car.brand} {car.model}</h3>
                             </div>
                             <p className="font-bold text-red-600 text-lg">
                               {formatPrice(car.sell_price)}
@@ -487,7 +487,7 @@ export default function MarketplaceTab({ user }: { user?: any }) {
               <div className="h-[1px] w-12 bg-blue-900"></div>
               <span className="text-blue-900 font-bold uppercase tracking-wider text-sm">Quy trình</span>
             </div>
-            <h2 className="text-3xl md:text-5xl font-serif text-slate-800 leading-tight mb-6">Từ tuyển chọn đến bàn giao</h2>
+            <h2 className="text-3xl md:text-5xl font-sans text-slate-800 leading-tight mb-6">Từ tuyển chọn đến bàn giao</h2>
             <p className="text-slate-500 mb-10 leading-relaxed">
               Quy trình chuẩn hóa giúp mỗi chiếc xe đến tay khách hàng đều đạt chất lượng như mong đợi — không phụ thuộc vào cảm tính của nhân viên bán hàng.
             </p>
@@ -512,7 +512,7 @@ export default function MarketplaceTab({ user }: { user?: any }) {
                 transition={{ duration: 0.5, delay: index * 0.15 }}
                 className="flex items-start gap-6 p-6 rounded-lg bg-slate-50 border border-slate-100 hover:border-blue-200 hover:bg-blue-50/50 transition-colors"
               >
-                <div className="w-12 h-12 flex-shrink-0 rounded-full border-2 border-blue-900/20 flex items-center justify-center text-blue-900 font-serif text-xl bg-white">
+                <div className="w-12 h-12 flex-shrink-0 rounded-full border-2 border-blue-900/20 flex items-center justify-center text-blue-900 font-sans text-xl bg-white">
                   {step.num}
                 </div>
                 <div>
@@ -580,7 +580,7 @@ export default function MarketplaceTab({ user }: { user?: any }) {
               <span className="text-blue-900 font-bold uppercase tracking-wider text-sm">Hỗ trợ 24/7</span>
             </div>
             
-            <h2 className="text-4xl md:text-5xl font-serif text-slate-800 mb-6 leading-tight">
+            <h2 className="text-4xl md:text-5xl font-sans text-slate-800 mb-6 leading-tight">
               Chưa tìm được xe ưng ý?
             </h2>
             

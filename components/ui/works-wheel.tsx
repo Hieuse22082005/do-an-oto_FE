@@ -280,14 +280,14 @@ export function WorksWheel({
 
       <div
         ref={labelRef}
-        className="pointer-events-none absolute inset-0 grid place-items-center tracking-tight font-serif text-blue-900 font-bold opacity-0"
+        className="pointer-events-none absolute inset-0 grid place-items-center  font-sans text-blue-900 font-bold opacity-0"
         style={{ fontSize: metrics.title }}
       >
         {label}
       </div>
       <div
         ref={titleRef}
-        className="pointer-events-none absolute top-[75%] left-[50%] -translate-x-1/2 tracking-tight opacity-0 font-serif font-bold text-slate-800 z-50 drop-shadow-md text-center"
+        className="pointer-events-none absolute top-[75%] left-[50%] -translate-x-1/2  opacity-0 font-sans font-bold text-slate-800 z-50 drop-shadow-md text-center"
         style={{ fontSize: metrics.title }}
       >
         {items[active]?.title}

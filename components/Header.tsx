@@ -206,7 +206,14 @@ export default function Header({ user, activeTab, onTabChange, onLoginClick, onL
                   </button>
                 )}
 
-                <button
+                
+<button
+    onClick={() => window.location.href = '/account/profile'}
+    className="hidden lg:flex items-center gap-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-5 py-2.5 text-xs font-black shadow-[0_0_15px_rgba(59,130,246,0.4)] transition-all hover:bg-blue-200 dark:hover:bg-blue-800/50 rounded-md"
+>
+    Hồ Sơ & Nạp Tín Dụng
+</button>
+<button
                   onClick={onLogoutClick}
                   className="w-9 h-9 border border-white/10 bg-white/5 text-slate-400 flex items-center justify-center transition-colors hover:text-red-400 hover:border-red-500/30 hover:bg-red-500/10"
                 >

@@ -79,6 +79,7 @@ export default function LoginPage() {
       if (data.session) {
         localStorage.setItem("access_token", data.session.access_token);
         localStorage.setItem("user_email", email);
+        localStorage.setItem("user_id", data.session.user.id);
         localStorage.setItem("user_tier", "standard"); 
 
         await supabase.from('user_activity_logs').insert([{

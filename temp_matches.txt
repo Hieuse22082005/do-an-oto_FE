@@ -1,0 +1,2 @@
+tight mb-6">Từ tuyển chọn đến bàn giao</h2>
+         { num: '04', title: 'Bàn giao & Hậu mãi', desc: 'Giao xe kè

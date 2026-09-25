@@ -32,11 +32,13 @@ export default function Home() {
     const token = localStorage.getItem("access_token");
     const userEmail = localStorage.getItem("user_email");
     const userTier = localStorage.getItem("user_tier") || "standard";
+    const userId = localStorage.getItem("user_id");
     
     if (token && userEmail) {
       const isAdmin = userEmail === "duongxuanhieu22082005@gmail.com";
       setUser({ 
-        email: userEmail, 
+        id: userId,
+          email: userEmail, 
         user_metadata: { display_name: userEmail.split('@')[0] },
         tier: userTier,
         role: isAdmin ? "admin" : "user" 
